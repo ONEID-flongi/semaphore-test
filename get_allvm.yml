@@ -10,15 +10,15 @@
         validate_certs: no
       register: vm_list
 
-    - name: Afficher le résultat brut (pour debug)
-      debug:
-        var: vm_list
-
     - name: Vérifier si des VMs sont présentes
       fail:
         msg: "Aucune VM trouvée sur vCenter."
       when: vm_list.virtual_machines is not defined or vm_list.virtual_machines | length == 0
 
-    - name: Afficher la liste des VMs
+    - name: Filtrer et structurer les infos des VMs
+      set_fact:
+        vm_info: "{{ vm_list.virtual_machines | map(attribute='guest_name') | list }}"
+
+    - name: Retourner les VMs en JSON (format API)
       debug:
-        msg: "{{ vm_list.virtual_machines | map(attribute='guest_name') | list }}"
+        msg: "{{ vm_info | to_json }}"
