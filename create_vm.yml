@@ -4,6 +4,7 @@
   vars:
     vm_memory_mb: "{{ VM_MEMORY_MB | default(4096) | int }}"
     vm_num_cpus: "{{ VM_NUM_CPUS | default(2) | int }}"
+    vm_name: "{{ lookup('env', 'VM_NAME') | default('Default_VM') }}"
   tasks:
     - name: Debug Variables (Vérification)
       debug:
@@ -17,7 +18,7 @@
         username: "{{ lookup('env', 'VCENTER_USERNAME') | default('admin@domain.local') }}"
         password: "{{ lookup('env', 'VCENTER_PASSWORD') | default('password') }}"
         validate_certs: no
-        name: "{{ lookup('env', 'VM_NAME') | default('Default_VM') }}"
+        name: "{{ vm_name }}"
         template: "{{ lookup('env', 'VM_TEMPLATE') | default('Ubuntu-Template') }}"
         datacenter: "{{ lookup('env', 'DATACENTER_NAME') | default('Datacenter') }}"
         cluster: "{{ lookup('env', 'CLUSTER_NAME') | default('Cluster1') }}"
