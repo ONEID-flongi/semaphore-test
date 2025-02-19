@@ -25,8 +25,8 @@
         guest_id: "{{ lookup('env', 'GUEST_ID') | default('ubuntu64Guest') }}"
         folder: "/"
         hardware:
-          memory_mb: "{{ lookup('env', 'VM_MEMORY_MB') | default(4096) | int }}"
-          num_cpus: "{{ lookup('env', 'VM_NUM_CPUS') | default(2) | int }}"
+          memory_mb: "{{ vm_memory_mb }}"
+          num_cpus: "{{ vm_num_cpus }}"
         networks:
           - name: "{{ lookup('env', 'NETWORK_NAME') | default('VM Network') }}"
             type: "dhcp"
