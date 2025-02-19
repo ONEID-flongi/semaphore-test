@@ -1,17 +1,15 @@
 - name: Deploy VM on vCenter
   hosts: localhost
   gather_facts: no
+  vars:
+    vm_memory_mb: "{{ VM_MEMORY_MB | default(4096) | int }}"
+    vm_num_cpus: "{{ VM_NUM_CPUS | default(2) | int }}"
   tasks:
-    - name: Debug Variables
+    - name: Debug Variables (Vérification)
       debug:
         msg:
-          - "vCenter: {{ lookup('env', 'VCENTER_HOSTNAME') }}"
-          - "Cluster: {{ lookup('env', 'CLUSTER_NAME') }}"
-          - "Datastore: {{ lookup('env', 'DATASTORE_NAME') }}"
-          - "VM Name: {{ lookup('env', 'VM_NAME') }}"
-          - "Template: {{ lookup('env', 'VM_TEMPLATE') }}"
-          - "Memory MB: {{ lookup('env', 'VM_MEMORY_MB') }}"
-          - "Num CPUs: {{ lookup('env', 'VM_NUM_CPUS') }}"
+          - "Memory MB: {{ vm_memory_mb }}"
+          - "Num CPUs: {{ vm_num_cpus }}"
 
     - name: Create VM from template
       community.vmware.vmware_guest:
