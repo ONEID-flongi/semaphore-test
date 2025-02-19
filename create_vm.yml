@@ -11,6 +11,7 @@
         msg:
           - "Memory MB: {{ vm_memory_mb }}"
           - "Num CPUs: {{ vm_num_cpus }}"
+          - "VM Name : {{ vm_name}}"
 
     - name: Create VM from template
       community.vmware.vmware_guest:
