@@ -1,3 +1,14 @@
+- name: Debug Variables
+  debug:
+    msg:
+      - "vCenter: {{ lookup('env', 'VCENTER_HOSTNAME') }}"
+      - "Cluster: {{ lookup('env', 'CLUSTER_NAME') }}"
+      - "Datastore: {{ lookup('env', 'DATASTORE_NAME') }}"
+      - "VM Name: {{ lookup('env', 'VM_NAME') }}"
+      - "Template: {{ lookup('env', 'VM_TEMPLATE') }}"
+      - "Memory MB: {{ lookup('env', 'VM_MEMORY_MB') }}"
+      - "Num CPUs: {{ lookup('env', 'VM_NUM_CPUS') }}"
+
 - name: Deploy VM on vCenter
   hosts: localhost
   gather_facts: no
