@@ -32,4 +32,3 @@
         networks:
           - name: "{{ lookup('env', 'NETWORK_NAME') | default('VM Network') }}"
             type: "dhcp"
-        state: poweredon
