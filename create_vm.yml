@@ -21,7 +21,7 @@
         validate_certs: no
         name: "{{ lookup('env', 'VM_NAME') | default('Default_VM') }}"
         template: "{{ lookup('env', 'VM_TEMPLATE') | default('Ubuntu-Template') }}"
-        datacenter: "{{ lookup('env', 'DATASTORE_NAME') | default('Datacenter') }}"
+        datacenter: "{{ lookup('env', 'DATACENTER_NAME') | default('Datacenter') }}"
         cluster: "{{ lookup('env', 'CLUSTER_NAME') | default('Cluster1') }}"
         datastore: "{{ lookup('env', 'DATASTORE_NAME') | default('Datastore1') }}"
         folder: "/VMs"
