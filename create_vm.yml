@@ -14,8 +14,8 @@
         cluster: "{{ lookup('env', 'CLUSTER_NAME') }}"
         folder: "/VMs"
         hardware:
-          memory_mb: "{{ lookup('env', 'VM_MEMORY_MB') }}"
-          num_cpus: "{{ lookup('env', 'VM_NUM_CPUS') }}"
+          memory_mb: "{{ lookup('env', 'VM_MEMORY_MB') | default(4096) | int }}"
+          num_cpus: "{{ lookup('env', 'VM_NUM_CPUS') | default(4) | int }}"
         networks:
           - name: "{{ lookup('env', 'NETWORK_NAME') }}"
             type: "dhcp"
