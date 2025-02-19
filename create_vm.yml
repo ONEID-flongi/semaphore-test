@@ -1,22 +1,24 @@
 - name: Deploy VM on vCenter
   hosts: localhost
   gather_facts: no
+  vars_files:
+    - vars/vcenter.yml
   tasks:
     - name: Create VM from template
       community.vmware.vmware_guest:
-        hostname: "vcenter.example.com"
-        username: "admin@domain.local"
-        password: "password"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
         validate_certs: no
-        name: "New_VM"
-        template: "Ubuntu-Template"
-        datacenter: "Datacenter"
-        cluster: "Cluster1"
+        name: "{{ vm_name }}"
+        template: "{{ vm_template }}"
+        datacenter: "{{ datacenter_name }}"
+        cluster: "{{ cluster_name }}"
         folder: "/VMs"
         hardware:
-          memory_mb: 4096
-          num_cpus: 2
+          memory_mb: "{{ vm_memory_mb }}"
+          num_cpus: "{{ vm_num_cpus }}"
         networks:
-          - name: "VM Network"
+          - name: "{{ network_name }}"
             type: "dhcp"
         state: poweredon
