@@ -1,8 +1,8 @@
 - name: Gather all registered virtual machines
   community.vmware.vmware_vm_info:
-    hostname: '{{ vcenter_hostname }}'
-    username: '{{ vcenter_username }}'
-    password: '{{ vcenter_password }}'
+      hostname: "{{ lookup('env', 'VCENTER_HOSTNAME') | default('vcenter.example.com') }}"
+      username: "{{ lookup('env', 'VCENTER_USERNAME') | default('admin@domain.local') }}"
+      password: "{{ lookup('env', 'VCENTER_PASSWORD') | default('password') }}"
   delegate_to: localhost
   register: vm_info
 
