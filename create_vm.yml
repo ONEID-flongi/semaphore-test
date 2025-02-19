@@ -1,24 +1,22 @@
 - name: Deploy VM on vCenter
   hosts: localhost
   gather_facts: no
-  vars_files:
-    - vars/vcenter.yml
   tasks:
     - name: Create VM from template
       community.vmware.vmware_guest:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
+        hostname: "{{ lookup('env', 'VCENTER_HOSTNAME') }}"
+        username: "{{ lookup('env', 'VCENTER_USERNAME') }}"
+        password: "{{ lookup('env', 'VCENTER_PASSWORD') }}"
         validate_certs: no
-        name: "{{ vm_name }}"
-        template: "{{ vm_template }}"
-        datacenter: "{{ datacenter_name }}"
-        cluster: "{{ cluster_name }}"
+        name: "{{ lookup('env', 'VM_NAME') }}"
+        template: "{{ lookup('env', 'VM_TEMPLATE') }}"
+        datacenter: "{{ lookup('env', 'DATASTORE_NAME') }}"
+        cluster: "{{ lookup('env', 'CLUSTER_NAME') }}"
         folder: "/VMs"
         hardware:
-          memory_mb: "{{ vm_memory_mb }}"
-          num_cpus: "{{ vm_num_cpus }}"
+          memory_mb: "{{ lookup('env', 'VM_MEMORY_MB') }}"
+          num_cpus: "{{ lookup('env', 'VM_NUM_CPUS') }}"
         networks:
-          - name: "{{ network_name }}"
+          - name: "{{ lookup('env', 'NETWORK_NAME') }}"
             type: "dhcp"
         state: poweredon
