@@ -1,10 +1,15 @@
-- name: Gather all registered virtual machines
-  community.vmware.vmware_vm_info:
-      hostname: "{{ lookup('env', 'VCENTER_HOSTNAME') | default('vcenter.example.com') }}"
-      username: "{{ lookup('env', 'VCENTER_USERNAME') | default('admin@domain.local') }}"
-      password: "{{ lookup('env', 'VCENTER_PASSWORD') | default('password') }}"
-  delegate_to: localhost
-  register: vm_info
+- name: Liste des VMs sur vCenter
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Récupérer la liste des VMs
+      community.vmware.vmware_vm_info:
+        hostname: "{{ lookup('env', 'VCENTER_HOSTNAME') }}"
+        username: "{{ lookup('env', 'VCENTER_USERNAME') }}"
+        password: "{{ lookup('env', 'VCENTER_PASSWORD') }}"
+        validate_certs: no
+      register: vm_list
 
-- debug:
-    var: vm_info.virtual_machines
+    - name: Afficher la liste des VMs
+      debug:
+        msg: "{{ vm_list.virtual_machines | map(attribute='name') | list }}"
