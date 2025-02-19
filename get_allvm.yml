@@ -1,0 +1,10 @@
+- name: Gather all registered virtual machines
+  community.vmware.vmware_vm_info:
+    hostname: '{{ vcenter_hostname }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+  delegate_to: localhost
+  register: vm_info
+
+- debug:
+    var: vm_info.virtual_machines
