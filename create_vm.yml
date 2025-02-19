@@ -24,6 +24,7 @@
         datacenter: "{{ lookup('env', 'DATACENTER_NAME') | default('Datacenter') }}"
         cluster: "{{ lookup('env', 'CLUSTER_NAME') | default('Cluster1') }}"
         datastore: "{{ lookup('env', 'DATASTORE_NAME') | default('Datastore1') }}"
+        guest_id: "{{ lookup('env', 'GUEST_ID') | default('ubuntu64Guest') }}"
         folder: "/"
         hardware:
           memory_mb: "{{ lookup('env', 'VM_MEMORY_MB') | default(4096) | int }}"
