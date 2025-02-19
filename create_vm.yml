@@ -4,7 +4,7 @@
   vars:
     vm_memory_mb: "{{ VM_MEMORY_MB | default(4096) | int }}"
     vm_num_cpus: "{{ VM_NUM_CPUS | default(2) | int }}"
-    vm_name: "{{ lookup('env', 'VM_NAME') | default('Default_VM') }}"
+    vm_name: "{{ VM_NAME | default('Default_VM') }}"
   tasks:
     - name: Debug Variables (Vérification)
       debug:
