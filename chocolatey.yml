@@ -5,6 +5,12 @@
     ansible_user: "{{ lookup('env', 'WIN_USERNAME') }}"
     ansible_password: "{{ lookup('env', 'WIN_PASSWORD') }}"
   tasks:
+    - name: Vérifier si Chocolatey est déjà installé
+      win_command: choco --version
+      register: choco_check
+      ignore_errors: true
+      changed_when: false
+
     - name: Télécharger et installer Chocolatey
       win_shell: |
         Set-ExecutionPolicy Bypass -Scope Process -Force;
@@ -13,6 +19,7 @@
       args:
         executable: powershell.exe
       register: chocolatey_result
+      when: choco_check.rc != 0
       changed_when: "'Chocolatey installed' in chocolatey_result.stdout"
 
     - name: Vérifier l'installation de Chocolatey
