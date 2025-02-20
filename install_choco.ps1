@@ -1,11 +1,16 @@
-# Définir la politique d'exécution pour éviter les restrictions
-Set-ExecutionPolicy Bypass -Scope Process -Force
+# Récupérer les variables d’environnement de Semaphore
+$hosts = $env:WIN_HOSTS -split ","
+$username = $env:WIN_USERNAME
+$password = ConvertTo-SecureString $env:WIN_PASSWORD -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential ($username, $password)
 
-# Activer TLS 1.2 pour éviter les problèmes de connexion
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-
-# Télécharger et exécuter le script d’installation de Chocolatey
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-# Vérifier que Chocolatey est bien installé
-choco --version
+# Exécuter le script sur chaque machine
+foreach ($host in $hosts) {
+    Write-Host "Déploiement de Chocolatey sur $host..."
+    Invoke-Command -ComputerName $host -Credential $cred -ScriptBlock {
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        choco --version
+    }
+}
