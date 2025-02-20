@@ -8,9 +8,13 @@
         bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
-    - name: Debug all environment variables
+    - name: Debug environment variables
       debug:
-      msg: "{{ lookup('env') }}"
+        msg:
+          - "Target URL: {{ target_url }}"
+          - "Target Namespace: {{ target_namespace }}"
+          - "Bucket Name: {{ bucket_name }}"
+          - "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
       fail:
