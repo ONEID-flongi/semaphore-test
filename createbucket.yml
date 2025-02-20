@@ -45,7 +45,7 @@
 
     - name: Set auth tokens
       set_fact:
-        target_token: "{{ target_response.headers['X-SDS-AUTH-TOKEN'] }}"
+        target_token: "{{ target_response.headers['x_sds_auth_token'] }}"
 
     - name: Create bucket
       uri:
