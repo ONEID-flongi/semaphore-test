@@ -6,7 +6,7 @@
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
-        auth_header: "Basic {{ lookup('env', 'API-KEY') }}"
+        auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
     - name: Check if API-KEY is set
       fail:
