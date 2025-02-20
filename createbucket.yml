@@ -1,11 +1,12 @@
 - name: Send API Requests to ECS
   hosts: localhost
+  vars:
+    bucket_name: "{{ BUCKET_NAME }}"
   tasks:
     - name: Set environment variables
       set_fact:
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
-        bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
     - name: Debug environment variables
