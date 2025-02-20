@@ -1,6 +1,9 @@
 ---
 - name: Installer Chocolatey sur Windows
   hosts: windows
+  vars:
+  ansible_user: "{{ WIN_USERNAME }}"
+  ansible_password: "{{ WIN_PASSWORD }}"
   tasks:
     - name: Télécharger et installer Chocolatey
       win_shell: |
