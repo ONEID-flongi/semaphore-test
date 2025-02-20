@@ -2,8 +2,8 @@
 - name: Installer Chocolatey sur Windows
   hosts: windows
   vars:
-  ansible_user: "{{ lookup('env', WIN_USERNAME }}"
-  ansible_password: "{{ lookup('env', WIN_PASSWORD }}"
+    ansible_user: "{{ lookup('env', 'WIN_USERNAME') }}"
+    ansible_password: "{{ lookup('env', 'WIN_PASSWORD') }}"
   tasks:
     - name: Télécharger et installer Chocolatey
       win_shell: |
@@ -14,7 +14,7 @@
         executable: powershell.exe
       register: chocolatey_result
       changed_when: "'Chocolatey installed' in chocolatey_result.stdout"
-      
+
     - name: Vérifier l'installation de Chocolatey
       win_command: choco --version
       register: choco_version
