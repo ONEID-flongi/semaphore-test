@@ -7,6 +7,7 @@
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
+        auth_header: "Basic xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
     - name: Disable SSL certificate validation
       set_fact:
@@ -18,6 +19,8 @@
       uri:
         url: "{{ target_url }}/login"
         method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
         validate_certs: no
       register: target_response
 
