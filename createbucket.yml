@@ -29,6 +29,10 @@
         timeout: 60
       register: target_response
 
+    - name: Debug target response
+      debug:
+        var: target_response
+
     - name: Check if target auth token request was successful
       fail:
         msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
