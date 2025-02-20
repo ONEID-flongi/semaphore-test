@@ -41,7 +41,7 @@
     - name: Check if target auth token header exists
       fail:
         msg: "Target auth token header not found in response."
-      when: target_response.headers['X-SDS-AUTH-TOKEN'] is not defined
+      when: target_response.headers['x_sds_auth_token'] is not defined
 
     - name: Set auth tokens
       set_fact:
