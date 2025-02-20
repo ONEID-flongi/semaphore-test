@@ -1,0 +1,14 @@
+version: v1.0
+name: Send API Request
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+
+blocks:
+  - name: "Send API Request"
+    task:
+      jobs:
+        - name: "Send API Request Job"
+          commands:
+            - curl -X POST -H "Content-Type: application/json" -d '{"key1":"value1", "key2":"value2"}' https://your-ecs-endpoint.com/api
