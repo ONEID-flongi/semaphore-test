@@ -1,14 +1,57 @@
-version: v1.0
-name: Send API Request
-agent:
-  machine:
-    type: e1-standard-2
-    os_image: ubuntu2004
+---
+- name: Send API Requests to ECS
+  hosts: localhost
+  tasks:
+    - name: Set environment variables
+      set_fact:
+        target_url: "{{ lookup('env', 'TARGET_URL') }}"
+        target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
+        bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
 
-blocks:
-  - name: "Send API Request"
-    task:
-      jobs:
-        - name: "Send API Request Job"
-          commands:
-            - curl -X POST -H "Content-Type: application/json" -d '{"key1":"value1", "key2":"value2"}' https://your-ecs-endpoint.com/api
+    - name: Disable SSL certificate validation
+      set_fact:
+        no_ssl_validation: |
+          import ssl
+          ssl._create_default_https_context = ssl._create_unverified_context
+
+    - name: Get target auth token
+      uri:
+        url: "{{ target_url }}/login"
+        method: GET
+        validate_certs: no
+      register: target_response
+
+    - name: Set auth tokens
+      set_fact:
+        target_token: "{{ target_response.headers['X-SDS-AUTH-TOKEN'] }}"
+
+    - name: Create bucket
+      uri:
+        url: "{{ target_url }}/bucket"
+        method: POST
+        headers:
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        body: |
+          <object_bucket_create>
+            <name>{{ bucket_name }}</name>
+            <vpool></vpool>
+            <filesystem_enabled>false</filesystem_enabled>
+            <head_type>s3</head_type>
+            <namespace>{{ target_namespace }}</namespace>
+            <is_stale_allowed>false</is_stale_allowed>
+            <retention>30</retention>
+            <compliance_enabled>false</compliance_enabled>
+            <search_metadata>
+              <isEnabled>true</isEnabled>
+              <maxKeys>0</maxKeys>
+              <metadata_tokens>false</metadata_tokens>
+              <metadata>
+                <datatype>datetime</datatype>
+                <name>LastModified</name>
+                <type>System</type>
+              </metadata>
+            </search_metadata>
+            <owner>urn:ecs:iam::{{ target_namespace }}:root</owner>
+            <softquota>-1</softquota>
+          </object_bucket_create>
+        validate_certs: no
