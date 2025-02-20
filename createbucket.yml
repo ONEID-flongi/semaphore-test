@@ -34,6 +34,11 @@
         msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
       when: target_response.status != 200
 
+    - name: Check if target auth token header exists
+      fail:
+        msg: "Target auth token header not found in response."
+      when: target_response.headers['X-SDS-AUTH-TOKEN'] is not defined
+
     - name: Set auth tokens
       set_fact:
         target_token: "{{ target_response.headers['X-SDS-AUTH-TOKEN'] }}"
