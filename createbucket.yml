@@ -49,7 +49,7 @@
 
     - name: Create bucket
       uri:
-        url: "{{ target_url }}/bucket"
+        url: "{{ target_url }}object/bucket"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
