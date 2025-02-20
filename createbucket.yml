@@ -38,14 +38,14 @@
         msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
       when: target_response.status != 200
 
-    - name: Check if target auth token header exists
-      fail:
-        msg: "Target auth token header not found in response."
-      when: "'x_sds_auth_token' not in target_response.headers"
-
-    - name: Set auth tokens
+    - name: Extract target auth token
       set_fact:
-        target_token: "{{ target_response.headers['x_sds_auth_token'] }}"
+        target_token: "{{ target_response['x_sds_auth_token'] | default('') }}"
+
+    - name: Check if target auth token was extracted
+      fail:
+        msg: "Target auth token not found in response."
+      when: target_token == ''
 
     - name: Create bucket
       uri:
