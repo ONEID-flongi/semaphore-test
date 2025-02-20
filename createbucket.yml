@@ -7,7 +7,7 @@
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
-        auth_header: "Basic xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
     - name: Disable SSL certificate validation
       set_fact:
