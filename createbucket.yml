@@ -53,6 +53,7 @@
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          Content-Type: "application/xml"
         body: |
           <object_bucket_create>
             <name>{{ bucket_name }}</name>
