@@ -8,6 +8,11 @@
         bucket_name: "{{ lookup('env', 'BUCKET_NAME') }}"
         auth_header: "Basic {{ lookup('env', 'API-KEY') }}"
 
+    - name: Check if API-KEY is set
+      fail:
+        msg: "API-KEY environment variable is not set."
+      when: auth_header == "Basic "
+
     - name: Disable SSL certificate validation
       set_fact:
         no_ssl_validation: |
@@ -21,7 +26,13 @@
         headers:
           Authorization: "{{ auth_header }}"
         validate_certs: no
+        timeout: 60
       register: target_response
+
+    - name: Check if target auth token request was successful
+      fail:
+        msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
+      when: target_response.status != 200
 
     - name: Set auth tokens
       set_fact:
