@@ -11,6 +11,13 @@
       ignore_errors: true
       changed_when: false
 
+    - name: Vérifier les mises à jour de Chocolatey
+      win_command: choco outdated chocolatey
+      register: choco_outdated
+      when: choco_check.rc == 0
+      changed_when: false
+      ignore_errors: true
+
     - name: Télécharger et installer Chocolatey
       win_shell: |
         Set-ExecutionPolicy Bypass -Scope Process -Force;
@@ -19,7 +26,7 @@
       args:
         executable: powershell.exe
       register: chocolatey_result
-      when: choco_check.rc != 0
+      when: choco_check.rc != 0 or choco_outdated.stdout != ''
       changed_when: "'Chocolatey installed' in chocolatey_result.stdout"
 
     - name: Vérifier l'installation de Chocolatey
