@@ -74,7 +74,7 @@
                 <type>System</type>
               </metadata>
             </search_metadata>
-            <owner>urn:ecs:iam::{{ target_namespace }}:root</owner>
+            <owner></owner>
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
