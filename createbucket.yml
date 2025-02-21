@@ -1,4 +1,4 @@
-  - name: Send API Requests to ECS
+- name: Send API Requests to ECS
   hosts: localhost
   vars:
     bucket_name: "{{ BUCKET_NAME }}"
@@ -89,6 +89,7 @@
           </object_bucket_create>
         validate_certs: no
       register: content
+      ignore_errors: yes
 
     - name: Check if Creation successful
       fail:
