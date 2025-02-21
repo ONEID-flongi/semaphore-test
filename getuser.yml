@@ -9,14 +9,6 @@
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
-#    - name: Debug environment variables
-#      debug:
-#        msg:
-#          - "Target URL: {{ target_url }}"
-#          - "Target Namespace: {{ target_namespace }}"
-#          - "Bucket Name: {{ bucket_name }}"
-#          - "Auth Header: {{ auth_header }}"
-
     - name: Check if API-KEY is set
       fail:
         msg: "API-KEY environment variable is not set."
@@ -37,10 +29,6 @@
         validate_certs: no
         timeout: 60
       register: target_response
-
-#    - name: Debug target response
-#      debug:
-#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -66,6 +54,13 @@
         validate_certs: no
       register: target_users
 
-    - name: Display Result
+    - name: Parse XML response
+      xml:
+        xmlstring: "{{ target_users.content }}"
+        xpath: /ns2:ListUsersResponse/ListUsersResult/Users/member
+        content: text
+      register: xml_response
+
+    - name: Display Users
       debug:
-        var: target_users.json
+        msg: "{{ xml_response.matches }}"
