@@ -68,4 +68,4 @@
 
     - name: Display Result
       debug:
-        var: target_users
+        var: "{{ target_users['content'] | default('No content found') }}"
