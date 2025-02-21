@@ -67,6 +67,6 @@
         validate_certs: no
       register: target_users
 
-    - name: Display Result
-      debug:
-        var: target_users
+- name: Display Result
+  debug:
+    msg: "{{ target_users.content }}"
