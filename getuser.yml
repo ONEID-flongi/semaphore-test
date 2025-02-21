@@ -1,5 +1,7 @@
 - name: Send API Requests to ECS
   hosts: localhost
+  vars:
+    bucket_name: "{{ BUCKET_NAME }}"
   tasks:
     - name: Set environment variables
       set_fact:
