@@ -9,13 +9,13 @@
         target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
-    - name: Debug environment variables
-      debug:
-        msg:
-          - "Target URL: {{ target_url }}"
-          - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Name: {{ bucket_name }}"
-          - "Auth Header: {{ auth_header }}"
+#    - name: Debug environment variables
+#      debug:
+#        msg:
+#          - "Target URL: {{ target_url }}"
+#          - "Target Namespace: {{ target_namespace }}"
+#          - "Bucket Name: {{ bucket_name }}"
+#          - "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
       fail:
@@ -38,9 +38,9 @@
         timeout: 60
       register: target_response
 
-    - name: Debug target response
-      debug:
-        var: target_response
+#    - name: Debug target response
+#      debug:
+#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
