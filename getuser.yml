@@ -68,4 +68,4 @@
 
     - name: Display Result
       debug:
-        msg: "{{ target_users.body }}"
+        msg: target_users
