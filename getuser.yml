@@ -65,7 +65,7 @@
         xpath: /ns2:ListUsersResponse/ListUsersResult/Users/member
         namespaces:
           ns2: "none"
-        content: text
+        content: attribute
       register: xml_response
 
     - name: Display Users
