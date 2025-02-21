@@ -56,7 +56,7 @@
         msg: "Target auth token not found in response."
       when: target_token == ''
 
-    - name: Create bucket
+    - name: Get User
       uri:
         url: "{{ target_url }}/iam?Action=ListUsers"
         method: POST
