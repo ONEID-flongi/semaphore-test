@@ -51,22 +51,23 @@
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-emc-namespace: "{{ target_namespace }}"
-        return_content: yes
         validate_certs: no
+        return_content: yes
       register: target_users
+
+    - name: Debug target users response
+      debug:
+        var: target_users
 
     - name: Parse XML response
       xml:
         xmlstring: "{{ target_users.content }}"
         xpath: /ns2:ListUsersResponse/ListUsersResult/Users/member
+        namespaces:
+          ns2: "none"
         content: text
       register: xml_response
 
     - name: Display Users
       debug:
         msg: "{{ xml_response.matches }}"
-        
-    - name: Debug target users response
-      debug:
-        var: target_users
-
