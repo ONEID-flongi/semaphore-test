@@ -91,6 +91,10 @@
       register: content
       ignore_errors: yes
 
+    - name: debugresult
+      debug:
+        var: content.content
+
     - name: Check if Creation successful
       fail:
         msg: "Failed to create Bucket: {{ content.content }}"
