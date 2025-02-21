@@ -1,0 +1,57 @@
+- name: Send API Requests to ECS
+  hosts: localhost
+  vars:
+    bucket_name: "{{ BUCKET_NAME }}"
+  tasks:
+    - name: Set environment variables
+      set_fact:
+        target_url: "{{ lookup('env', 'TARGET_URL') }}"
+        target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
+        auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
+
+#    - name: Debug environment variables
+#      debug:
+#        msg:
+#          - "Target URL: {{ target_url }}"
+#          - "Target Namespace: {{ target_namespace }}"
+#          - "Bucket Name: {{ bucket_name }}"
+#          - "Auth Header: {{ auth_header }}"
+
+    - name: Check if API-KEY is set
+      fail:
+        msg: "API-KEY environment variable is not set."
+      when: auth_header == "Basic "
+
+    - name: Disable SSL certificate validation
+      set_fact:
+        no_ssl_validation: |
+          import ssl
+          ssl._create_default_https_context = ssl._create_unverified_context
+
+    - name: Get target auth token
+      uri:
+        url: "{{ target_url }}/login"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+        validate_certs: no
+        timeout: 60
+      register: target_response
+
+#    - name: Debug target response
+#      debug:
+#        var: target_response
+
+    - name: Check if target auth token request was successful
+      fail:
+        msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
+      when: target_response.status != 200
+
+    - name: Extract target auth token
+      set_fact:
+        target_token: "{{ target_response['x_sds_auth_token'] | default('') }}"
+
+    - name: Check if target auth token was extracted
+      fail:
+        msg: "Target auth token not found in response."
+      when: target_token == ''
