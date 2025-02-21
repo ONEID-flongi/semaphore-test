@@ -94,4 +94,4 @@
     - name: Check if Creation successful
       fail:
         msg: "Failed to create Bucket: {{ content.content }}"
-      when: when: content.status != 200
+      when: content.status != 200
