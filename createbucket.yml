@@ -63,6 +63,7 @@
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           Content-Type: "application/xml"
+        return_content: yes
         body: |
           <object_bucket_create>
             <name>{{ bucket_name }}</name>
@@ -87,3 +88,8 @@
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
+      register: content
+
+    - name: Get Content
+      debug:
+        msg : "{{ content.content }}"
