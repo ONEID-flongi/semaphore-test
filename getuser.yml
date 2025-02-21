@@ -55,19 +55,7 @@
         return_content: yes
       register: target_users
 
-    - name: Debug target users response
-      debug:
-        var: target_users
-
-    - name: Parse XML response
-      xml:
-        xmlstring: "{{ target_users.content }}"
-        xpath: /ns2:ListUsersResponse/ListUsersResult/Users/member
-        namespaces:
-          ns2: "none"
-        content: attribute
-      register: xml_response
 
     - name: Display Users
       debug:
-        msg: "{{ xml_response.matches }}"
+        msg: "{{ target_users.content }}"
