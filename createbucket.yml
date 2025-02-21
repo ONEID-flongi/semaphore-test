@@ -98,7 +98,7 @@
     - name: Check if Creation successful
       fail:
         msg: "Failed to create Bucket: {{ content.content }}"
-      when: content.status != 200 and '"Bucket already exists" not in content.content'
+      when: when: content.status != 200 and 'Bucket already exists' not in content.content
 
     - name: Notify if bucket already exists
       debug:
