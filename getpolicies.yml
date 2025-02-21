@@ -45,7 +45,7 @@
       when: target_token == ''
 
 
-    - name: Get User
+    - name: Get Policies
       uri:
         url: "{{ target_url }}/iam?Action=ListPolicies"
         method: POST
@@ -54,7 +54,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: target_users
+      register: target_policies
 
 
     - name: Display Users
