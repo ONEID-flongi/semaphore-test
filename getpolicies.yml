@@ -45,16 +45,16 @@
       when: target_token == ''
 
 
-    - name: Get Policie
+    - name: Get User
       uri:
-        url: "{{ target_url }}/iam?Action=ListPolicies
+        url: "{{ target_url }}/iam?Action=ListUsers"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: target_policies
+      register: target_users
 
 
     - name: Display Users
