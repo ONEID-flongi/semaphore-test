@@ -1,4 +1,4 @@
-- name: Send API Requests to ECS
+  - name: Send API Requests to ECS
   hosts: localhost
   vars:
     bucket_name: "{{ BUCKET_NAME }}"
@@ -92,9 +92,10 @@
 
     - name: Check if Creation successful
       fail:
-        msg: "Failed to get create Bucket {{ content.content }}"
-      when: content.status != 200
+        msg: "Failed to create Bucket: {{ content.content }}"
+      when: content.status != 200 and 'Bucket already exists' not in content.content
 
-    - name: Get Content
+    - name: Notify if bucket already exists
       debug:
-        msg : "{{ content.content }}"
+        msg: "Bucket already exists."
+      when: 'Bucket already exists' in content.content
