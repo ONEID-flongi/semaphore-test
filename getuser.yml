@@ -58,32 +58,15 @@
 
     - name: Create bucket
       uri:
-        url: "{{ target_url }}/object/bucket"
+        url: "{{ target_url }}/iam?Action=ListUsers"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
-          Content-Type: "application/xml"
-        body: |
-          <object_bucket_create>
-            <name>{{ bucket_name }}</name>
-            <vpool></vpool>
-            <filesystem_enabled>false</filesystem_enabled>
-            <head_type>s3</head_type>
-            <namespace>{{ target_namespace }}</namespace>
-            <is_stale_allowed>false</is_stale_allowed>
-            <retention>30</retention>
-            <compliance_enabled>false</compliance_enabled>
-            <search_metadata>
-              <isEnabled>true</isEnabled>
-              <maxKeys>0</maxKeys>
-              <metadata_tokens>false</metadata_tokens>
-              <metadata>
-                <datatype>datetime</datatype>
-                <name>LastModified</name>
-                <type>System</type>
-              </metadata>
-            </search_metadata>
-            <owner></owner>
-            <softquota>-1</softquota>
-          </object_bucket_create>
+          x-emc-namespace: "{{ target_namespace }}"
+          
         validate_certs: no
+      register: target_users
+
+    - name: Display Result
+      debug:
+        var: target_users
