@@ -2,11 +2,11 @@
   hosts: localhost
   vars:
     bucket_name: "{{ BUCKET_NAME }}"
+    target_namespace: "{{ TARGET_NAMESPACE }}"
   tasks:
     - name: Set environment variables
       set_fact:
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
-        target_namespace: "{{ lookup('env', 'TARGET_NAMESPACE') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
     - name: Debug environment variables
@@ -84,7 +84,7 @@
                 <type>System</type>
               </metadata>
             </search_metadata>
-            <owner></owner>
+            <owner>urn:ecs:iam::{{ target_namespace }}:root</owner>
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
