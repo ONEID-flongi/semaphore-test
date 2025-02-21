@@ -47,7 +47,7 @@
 
     - name: Get User
       uri:
-        url: "{{ target_url }}/iam?Action=ListUsers"
+        url: "{{ target_url }}/iam?Action=ListPolicies"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
