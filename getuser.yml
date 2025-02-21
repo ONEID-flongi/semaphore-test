@@ -63,10 +63,9 @@
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-emc-namespace: "{{ target_namespace }}"
-          
         validate_certs: no
       register: target_users
 
-- name: Display Result
-  debug:
-    msg: "{{ target_users.content }}"
+    - name: Display Result
+      debug:
+        msg: "{{ target_users.content }}"
