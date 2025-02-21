@@ -90,6 +90,11 @@
         validate_certs: no
       register: content
 
+    - name: Check if Creation successful
+      fail:
+        msg: "Failed to get create Bucket {{ content.content }}"
+      when: content.status != 200
+
     - name: Get Content
       debug:
         msg : "{{ content.content }}"
