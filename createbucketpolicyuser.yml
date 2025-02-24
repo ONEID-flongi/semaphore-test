@@ -180,7 +180,7 @@
         msg: "Failed to create Bucket: {{ content.content }}"
       when: content.status != 200
 
-          - name: Create IAM access key
+    - name: Create IAM access key
       uri:
         url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
         method: POST
@@ -196,7 +196,7 @@
       debug:
         var: access_key_response
 
-            - name: Create IAM policy
+    - name: Create IAM policy
       uri:
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
         method: POST
@@ -212,7 +212,7 @@
       debug:
         var: policy_response.json
 
-            - name: Attach IAM user policy
+    - name: Attach IAM user policy
       uri:
         url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ user_name | urlencode }}"
         method: POST
