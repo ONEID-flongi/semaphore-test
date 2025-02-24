@@ -78,6 +78,7 @@
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-ecs-namespace: "{{ target_namespace }}"
+          namepsace: "{{ target_namespace }}"
           Content-Type: "application/xml"
 
         return_content: yes
