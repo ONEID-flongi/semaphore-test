@@ -78,8 +78,7 @@
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-ecs-namespace: "{{ target_namespace }}"
-          namepsace: "{{ target_namespace }}"
-          Content-Type: "application/xml"
+          Content-Type: "application/json"
 
         return_content: yes
       register: policy_response
