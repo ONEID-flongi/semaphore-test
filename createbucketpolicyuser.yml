@@ -1,1 +1,230 @@
+- name: Send API Requests to ECS
+  hosts: localhost
+  vars:
+    bucket_name: "{{ BUCKET_NAME }}"
+    target_namespace: "{{ TARGET_NAMESPACE }}"
+    user_name: "{{ USER_NAME }}"
+    policy_name: "{{ POLICY_NAME }}"
+    policy_description: "Policy for managing access"
+    policy_json: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "s3:GetObject",
+              "s3:GetObjectAcl",
+              "s3:GetObjectLegalHold",
+              "s3:GetObjectRetention",
+              "s3:GetObjectTagging",
+              "s3:GetObjectVersion",
+              "s3:GetObjectVersionAcl",
+              "s3:GetObjectVersionTagging",
+              "s3:GetObjectVersionForReplication",
+              "s3:GetDetailedReplicationStatus",
+              "s3:ListMultipartUploadParts",
+              "s3:ListBucketVersions",
+              "s3:GetBucketVersioning",
+              "s3:GetBucketObjectLockConfiguration",
+              "s3:GetBucketAcl",
+              "s3:GetBucketCORS",
+              "s3:GetLifecycleConfiguration",
+              "s3:ListBucketMultipartUploads",
+              "s3:GetBucketPolicy",
+              "s3:GetReplicationConfiguration",
+              "s3:GetBucketNotification",
+              "s3:GetBucketMetaDataSearchKey",
+              "s3:GetBucketLocation",
+              "s3:GetBucketLogging",
+              "s3:CreateBucket",
+              "s3:DeleteBucket",
+              "s3:PutBucketCORS",
+              "s3:PutBucketVersioning",
+              "s3:PutBucketObjectLockConfiguration",
+              "s3:EnableObjectLock",
+              "s3:PutLifecycleConfiguration",
+              "s3:PutObject",
+              "s3:DeleteObject",
+              "s3:DeleteObjectVersion",
+              "s3:AbortMultipartUpload",
+              "s3:PutObjectLegalHold",
+              "s3:PutObjectRetention",
+              "s3:BypassGovernanceRetention",
+              "s3:PutBucketLogging",
+              "s3:PutObjectTagging",
+              "s3:PutObjectVersionTagging",
+              "s3:DeleteObjectTagging",
+              "s3:DeleteObjectVersionTagging",
+              "s3:PutBucketAcl",
+              "s3:PutBucketPolicy",
+              "s3:DeleteBucketPolicy",
+              "s3:PutObjectAcl",
+              "s3:PutObjectVersionAcl",
+              "s3:PutReplicationConfiguration",
+              "s3:DeleteReplicationConfiguration",
+              "s3:ReplicateObject",
+              "s3:ReplicateTags",
+              "s3:ReplicateDelete",
+              "s3:ObjectOwnerOverrideToBucketOwner",
+              "s3:PutBucketNotification",
+              "s3:ListBucket",
+              "s3:ListAllMyBuckets"
+            ],
+            "Resource": [
+              "arn:aws:s3:::{{ bucket_name }}/*",
+              "arn:aws:s3:::{{ bucket_name }}"
+            ],
+            "Effect": "Allow",
+            "Sid": "VisualEditor0"
+          },
+          {
+            "Action": [
+              "s3:ListAllMyBuckets"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "VisualEditor1"
+          }
+        ]
+      }
+  tasks:
+    - name: Set environment variables
+      set_fact:
+        target_url: "{{ lookup('env', 'TARGET_URL') }}"
+        auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
+
+    - name: Debug environment variables
+      debug:
+        msg:
+          - "Target URL: {{ target_url }}"
+          - "Target Namespace: {{ target_namespace }}"
+          - "Bucket Name: {{ bucket_name }}"
+          - "Auth Header: {{ auth_header }}"
+
+    - name: Check if API-KEY is set
+      fail:
+        msg: "API-KEY environment variable is not set."
+      when: auth_header == "Basic "
+
+    - name: Disable SSL certificate validation
+      set_fact:
+        no_ssl_validation: |
+          import ssl
+          ssl._create_default_https_context = ssl._create_unverified_context
+
+    - name: Get target auth token
+      uri:
+        url: "{{ target_url }}/login"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+        validate_certs: no
+        timeout: 60
+      register: target_response
+
+    - name: Debug target response
+      debug:
+        var: target_response
+
+    - name: Check if target auth token request was successful
+      fail:
+        msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
+      when: target_response.status != 200
+
+    - name: Extract target auth token
+      set_fact:
+        target_token: "{{ target_response['x_sds_auth_token'] | default('') }}"
+
+    - name: Check if target auth token was extracted
+      fail:
+        msg: "Target auth token not found in response."
+      when: target_token == ''
+
+    - name: Create bucket
+      uri:
+        url: "{{ target_url }}/object/bucket"
+        method: POST
+        headers:
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          Content-Type: "application/xml"
+        return_content: yes
+        body: |
+          <object_bucket_create>
+            <name>{{ bucket_name }}</name>
+            <vpool></vpool>
+            <filesystem_enabled>false</filesystem_enabled>
+            <head_type>s3</head_type>
+            <namespace>{{ target_namespace }}</namespace>
+            <is_stale_allowed>false</is_stale_allowed>
+            <retention>30</retention>
+            <compliance_enabled>false</compliance_enabled>
+            <search_metadata>
+              <isEnabled>true</isEnabled>
+              <maxKeys>0</maxKeys>
+              <metadata_tokens>false</metadata_tokens>
+              <metadata>
+                <datatype>datetime</datatype>
+                <name>LastModified</name>
+                <type>System</type>
+              </metadata>
+            </search_metadata>
+            <owner>urn:ecs:iam::{{ target_namespace }}:root</owner>
+            <softquota>-1</softquota>
+          </object_bucket_create>
+        validate_certs: no
+      register: content
+      ignore_errors: yes
+
+    - name: Check if Creation successful
+      fail:
+        msg: "Failed to create Bucket: {{ content.content }}"
+      when: content.status != 200
+
+          - name: Create IAM access key
+      uri:
+        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: access_key_response
+
+    - name: Debug access key creation response
+      debug:
+        var: access_key_response
+
+            - name: Create IAM policy
+      uri:
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: policy_response
+
+    - name: Debug policy creation response
+      debug:
+        var: policy_response.json
+
+            - name: Attach IAM user policy
+      uri:
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ user_name | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: attach_policy_response
+
+    - name: Debug attach policy response
+      debug:
+        var: attach_policy_response
 
