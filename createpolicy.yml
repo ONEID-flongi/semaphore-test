@@ -76,9 +76,9 @@
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName=s3-p-{{ policy_name }}&Description={{ policy_description }}&PolicyDocument={{ policy_json | to_json | urlencode }}
         method: PUT
         headers:
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"
           Content-Type: "application/xml"
           x-ecs-namespace: "{{ target_namespace }}"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
         return_content: yes
         status_code: [200, 201]
       register: policy_response
