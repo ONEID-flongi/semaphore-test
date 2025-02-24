@@ -29,7 +29,7 @@
         msg:
           - "Target URL: {{ target_url }}"
           - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Name: {{ bucket_name }}"
+          - "Policy Name: {{ policy_name }}"
           - "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
