@@ -80,7 +80,7 @@
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-ecs-namespace: "{{ target_namespace }}"
           namespace: "{{ target_namespace }}"
-
+        validate_certs: no
         return_content: yes
       register: policy_response
 
