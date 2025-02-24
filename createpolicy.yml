@@ -1,7 +1,7 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    bucket_name: "{{ BUCKET_NAME }}"
+    policy_name: "{{ POLICY_NAME }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
     policy_description: "Policy for managing access"
     policy_json: |
