@@ -73,7 +73,7 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName=s3-p-{{ policy_name }}&Description={{ policy_description }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
         method: PUT
         headers:
           Content-Type: "application/xml"
