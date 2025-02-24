@@ -3,13 +3,18 @@
   vars:
     bucket_name: "{{ BUCKET_NAME }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
+    policy_description: "Policy for managing access"
     policy_json: |
       {
+        "Version": "2012-10-17",
         "Statement": [
           {
             "Effect": "Allow",
-            "Action": "s3:ListBucket",
-            "Resource": "arn:aws:s3:::my-bucket"
+            "Action": [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
+            "Resource": "*"
           }
         ]
       }
@@ -68,14 +73,12 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam/policies/s3-p-{{ bucket_name }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName=s3-p-{{ policy_name }}&Description={{ policy_description }}&PolicyDocument={{ policy_json | to_json | urlencode }}
         method: PUT
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           Content-Type: "application/xml"
           x-ecs-namespace: "{{ namespace }}"
-        body_format: json
-        body: "{{ policy_json }}"
         return_content: yes
         status_code: [200, 201]
       register: policy_response
