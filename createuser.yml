@@ -72,7 +72,8 @@
     - name: Debug user creation response
       debug:
         var: user_response
-            - name: Check if user creation was successful
+
+    - name: Check if user creation was successful
       fail:
         msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
       when: user_response.status != 200
