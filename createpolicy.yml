@@ -74,7 +74,7 @@
     - name: Create IAM policy
       uri:
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | urlencode }}"
-        method: PUT
+        method: POST
         headers:
           Content-Type: "application/xml"
           x-ecs-namespace: "{{ target_namespace }}"
