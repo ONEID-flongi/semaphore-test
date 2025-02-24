@@ -72,3 +72,23 @@
     - name: Debug user creation response
       debug:
         var: user_response
+            - name: Check if user creation was successful
+      fail:
+        msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
+      when: user_response.status != 200
+
+    - name: Create IAM access key
+      uri:
+        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: access_key_response
+
+    - name: Debug access key creation response
+      debug:
+        var: access_key_response
