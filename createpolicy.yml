@@ -70,8 +70,8 @@
               "s3:ListAllMyBuckets"
             ],
             "Resource": [
-              "arn:aws:s3:::fabrice/*",
-              "arn:aws:s3:::fabrice"
+              "arn:aws:s3:::{{ bucket_name }}/*",
+              "arn:aws:s3:::{{ bucket_name }}"
             ],
             "Effect": "Allow",
             "Sid": "VisualEditor0"
@@ -141,7 +141,7 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
