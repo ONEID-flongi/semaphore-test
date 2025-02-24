@@ -76,9 +76,10 @@
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | urlencode }}"
         method: POST
         headers:
+          Content-Type: "application/json"
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-ecs-namespace: "{{ target_namespace }}"
-          Content-Type: "application/json"
+          namespace: "{{ target_namespace }}"
 
         return_content: yes
       register: policy_response
