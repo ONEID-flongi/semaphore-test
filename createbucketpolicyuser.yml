@@ -180,6 +180,27 @@
         msg: "Failed to create Bucket: {{ content.content }}"
       when: content.status != 200
 
+    - name: Create IAM user
+      uri:
+        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ user_name | urlencode }}&Path=/"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: user_response
+
+    - name: Debug user creation response
+      debug:
+        var: user_response
+
+    - name: Check if user creation was successful
+      fail:
+        msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
+      when: user_response.status != 200
+
     - name: Create IAM access key
       uri:
         url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
