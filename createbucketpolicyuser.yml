@@ -92,6 +92,7 @@
       set_fact:
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
+        policy_arn: "urn:ecs:iam::{{ TARGET_NAMESPACE }}:policy/{{ POLICY_NAME }}"
 
     - name: Debug environment variables
       debug:
