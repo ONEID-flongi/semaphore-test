@@ -73,14 +73,13 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | urlencode }}"
         method: PUT
         headers:
           Content-Type: "application/xml"
           x-ecs-namespace: "{{ target_namespace }}"
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
         return_content: yes
-        status_code: [200, 201]
       register: policy_response
 
     - name: Debug policy creation response
