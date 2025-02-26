@@ -100,7 +100,20 @@
  #       var: access_key_response
 
 
+    - name: Delete IAM user policy
+      uri:
+        url: "{{ target_url }}/iam?UserName={{ user_name | urlencode }}&Action=DeleteUserPermissionsBoundar"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: user_response
+      when: action == "delete"
 
+      
     - name: Delete IAM user
       uri:
         url: "{{ target_url }}/iam?Action=DeleteUser&UserName={{ user_name | urlencode }}&Path=/"
