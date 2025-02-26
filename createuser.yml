@@ -1,8 +1,9 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    user_name: "{{ USER_NAME }}"
-    target_namespace: "{{ TARGET_NAMESPACE }}"
+    user_name: "{{ USER_NAME | lower }} }}"
+    target_namespace: "{{ TARGET_NAMESPACE | lower }} }}"
+    action: "{{ ACTION | lower }} }}"  # "create","delete","modify"
 
   tasks:
     - name: Set environment variables
@@ -10,13 +11,14 @@
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
-    - name: Debug environment variables
-      debug:
-        msg:
-          - "Target URL: {{ target_url }}"
-          - "Target Namespace: {{ target_namespace }}"
-          - "user_name Name: {{ user_name }}"
-          - "Auth Header: {{ auth_header }}"
+#    - name: Debug environment variables
+#      debug:
+#        msg:
+#          - "Target URL: {{ target_url }}"
+#          - "Target Namespace: {{ target_namespace }}"
+#          - "user_name Name: {{ user_name }}"
+#          - "Auth Header: {{ auth_header }}"
+#          - "Action: {{ action }}"
 
     - name: Check if API-KEY is set
       fail:
@@ -39,9 +41,9 @@
         timeout: 60
       register: target_response
 
-    - name: Debug target response
-      debug:
-        var: target_response
+#    - name: Debug target response
+#      debug:
+#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -68,15 +70,17 @@
         validate_certs: no
         return_content: yes
       register: user_response
+      when: action == "create"
 
-    - name: Debug user creation response
-      debug:
-        var: user_response
+#    - name: Debug user creation response
+#      debug:
+#        var: user_response
 
     - name: Check if user creation was successful
       fail:
         msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
       when: user_response.status != 200
+      when: action == "create"
 
     - name: Create IAM access key
       uri:
@@ -89,7 +93,43 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
+      when: action == "create"
 
-    - name: Debug access key creation response
-      debug:
-        var: access_key_response
+ #   - name: Debug access key creation response
+ #     debug:
+ #       var: access_key_response
+
+
+
+    - name: Delete IAM user
+      uri:
+        url: "{{ target_url }}/iam?Action=DeleteUser&UserName={{ user_name | urlencode }}&Path=/"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: user_response
+      when: action == "delete"
+     
+   - name: Check if user deletion was successful
+      fail:
+        msg: "Failed to delete IAM user. Status code: {{ user_response.status }}"
+      when: user_response.status != 200
+      when: action == "delete"
+
+
+    - name: Logout ECS API token
+      uri:
+        validate_certs: no
+        url: "{{ target_url }}/logout"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        return_content: yes
+      register: results_logout
+      
