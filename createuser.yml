@@ -102,7 +102,7 @@
 
     - name: Delete IAM user policy
       uri:
-        url: "{{ target_url }}/iam?UserName={{ user_name | urlencode }}&Action=DeleteUserPermissionsBoundar"
+        url: "{{ target_url }}/iam?UserName={{ user_name | urlencode }}&Action=DeleteUserPermissionsBoundary"
         method: POST
         headers:
           Content-Type: "application/xml"
