@@ -102,7 +102,7 @@
 
     - name: list IAM user policy
       uri:
-        url: "{{ target_url }}/iam?Action=ListAttachedUserPoliciesUserName={{ user_name | urlencode }}"
+        url: "{{ target_url }}/iam?Action=ListAttachedUserPolicies&UserName={{ user_name | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
