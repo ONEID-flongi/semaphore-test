@@ -141,6 +141,53 @@
       loop: "{{ policy_arns }}"
       when: action == "delete"
 
+    - name: List IAM user access keys
+      uri:
+        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ user_name | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: access_keys_response
+      when: action == "delete"
+
+    - name: Debug IAM access keys
+      debug:
+        var: access_keys_response.content
+      when: action == "delete"
+
+    - name: Set access key IDs fact
+      set_fact:
+        access_key_ids: "{{ access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') }}"
+      when: action == "delete"
+
+    - name: Debug access key IDs
+      debug:
+        var: access_key_ids
+      when: action == "delete"
+
+    - name: Delete IAM user access keys
+      uri:
+        url: "{{ target_url }}/iam?Action=DeleteAccessKey&UserName={{ user_name | urlencode }}&AccessKeyId={{ item | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: delete_access_key_response
+      loop: "{{ access_key_ids }}"
+      when: action == "delete"
+
+    - name: Debug delete access key response
+      debug:
+        var: delete_access_key_response
+      when: action == "delete"
+
       
     - name: Delete IAM user
       uri:
