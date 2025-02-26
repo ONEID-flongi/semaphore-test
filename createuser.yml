@@ -160,7 +160,7 @@
       register: access_keys_response
       when: action == "delete"
 
-"    - name: Debug IAM access keys
+#    - name: Debug IAM access keys
 #      debug:
 #        var: access_keys_response.content
 #      when: action == "delete"
