@@ -94,6 +94,10 @@
       register: access_key_response
       when: action == "create"
 
+    - name:
+      debug:
+        var: access_key_response
+
     - name: Check if accesskey creation was successful
       fail:
         msg: "Failed to create IAM user accesskey. Status code: {{ access_key_response.status }}"
