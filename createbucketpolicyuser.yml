@@ -94,13 +94,13 @@
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
         policy_arn: "urn:ecs:iam::{{ TARGET_NAMESPACE }}:policy/{{ POLICY_NAME }}"
 
-    - name: Debug environment variables
-      debug:
-        msg:
-          - "Target URL: {{ target_url }}"
-          - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Name: {{ bucket_name }}"
-          - "Auth Header: {{ auth_header }}"
+#    - name: Debug environment variables
+#      debug:
+#        msg:
+#          - "Target URL: {{ target_url }}"
+#          - "Target Namespace: {{ target_namespace }}"
+#          - "Bucket Name: {{ bucket_name }}"
+#          - "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
       fail:
@@ -123,9 +123,9 @@
         timeout: 60
       register: target_response
 
-    - name: Debug target response
-      debug:
-        var: target_response
+#    - name: Debug target response
+#      debug:
+#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -193,9 +193,9 @@
         return_content: yes
       register: user_response
 
-    - name: Debug user creation response
-      debug:
-        var: user_response
+ #   - name: Debug user creation response
+ #     debug:
+ #       var: user_response
 
     - name: Check if user creation was successful
       fail:
@@ -214,19 +214,23 @@
         return_content: yes
       register: access_key_response
 
-    - name: Debug access key creation response
+    - name: ACCESS KEY
       debug:
-        var: access_key_response
+        var: access_key_response.content
 
-    - name: Save results
-      set_fact:
-        task_result: >
-          {
-            "CreateAccessKeyResult": {{ access_key_response.content }}
-          }
-    - name : debug accesskey
-      debug:
-        var : task_result
+#    - name: Debug access key creation response
+#      debug:
+#        var: access_key_response
+
+#    - name: Save results
+#      set_fact:
+#        task_result: >
+#          {
+#            "CreateAccessKeyResult": {{ access_key_response.content }}
+#          }
+#    - name : debug accesskey
+#      debug:
+#        var : task_result
 
     - name: Create IAM policy
       uri:
@@ -240,9 +244,9 @@
         return_content: yes
       register: policy_response
 
-    - name: Debug policy creation response
-      debug:
-        var: policy_response.json
+#    - name: Debug policy creation response
+#      debug:
+#        var: policy_response.json
 
     - name: Attach IAM user policy
       uri:
@@ -256,9 +260,9 @@
         return_content: yes
       register: attach_policy_response
 
-    - name: Debug attach policy response
-      debug:
-        var: attach_policy_response
+#    - name: Debug attach policy response
+#      debug:
+#        var: attach_policy_response
 
     - name: Logout ECS API token
       uri:
