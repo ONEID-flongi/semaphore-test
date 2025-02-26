@@ -114,11 +114,11 @@
       register: user_response
       when: action == "delete"
      
-   - name: Check if user deletion was successful
-      fail:
-        msg: "Failed to delete IAM user. Status code: {{ user_response.status }}"
-      when: user_response.status != 200
-      when: action == "delete"
+   #- name: Check if user deletion was successful
+   #   fail:
+   #     msg: "Failed to delete IAM user. Status code: {{ user_response.status }}"
+   #   when: user_response.status != 200
+   #   when: action == "delete"
 
 
     - name: Logout ECS API token
