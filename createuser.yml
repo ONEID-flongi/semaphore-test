@@ -75,14 +75,16 @@
     - name: Debug user creation response
       debug:
         var: user_response
-      when: action == "create"
+      when: 
+        - action == "create"
+        - user_response.status == 200
 
     - name: Check if user creation was successful
       fail:
         msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
       when: 
         - action == "create"
-        - user_response.status == 200
+        - user_response.status != 200
         
 
     - name: Create IAM access key
@@ -101,11 +103,16 @@
     - name: Debug access key response
       debug:
         var: access_key_response
+      when: 
+        - action == "create"
+        - access_key_response.status == 200
 
     - name: Check if access key creation was successful
       fail:
         msg: "Failed to create IAM user access key. Status code: {{ access_key_response.status }}"
-      when: access_key_response.status != 200 and action == "create"
+      when: 
+        - action == "create"
+        - access_key_response.status != 200
 
     - name: Set AccessKey fact
       set_fact:
@@ -120,7 +127,9 @@
         msg:
           - "AccessKeyId: {{ AccessKeyId }}"
           - "SecretAccessKey: {{ SecretAccessKey }}"
-      when: access_key_response.status == 200 and action == "create"
+      when: 
+        - access_key_response.status == 200
+        - action == "create"
 
     # - name: Debug access key creation response
     #   debug:
