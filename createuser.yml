@@ -119,7 +119,7 @@
 
     - name: Set policy ARN fact
       set_fact:
-        policy_arn: "{{ user_policy_response.content | xmltodict | json_query('ListAttachedUserPoliciesResponse.ListAttachedUserPoliciesResult.AttachedPolicies.member.PolicyArn') }}"
+        policy_arn: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | first }}"
       when: action == "delete"
 
     - name: Debug policy ARN
