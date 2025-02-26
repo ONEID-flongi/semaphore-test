@@ -224,6 +224,9 @@
           {
             "CreateAccessKeyResult": {{ access_key_response.content }}
           }
+    - name : debug accesskey
+      debug:
+        var : task_result
 
     - name: Create IAM policy
       uri:
