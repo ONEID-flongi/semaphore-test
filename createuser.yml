@@ -117,20 +117,19 @@
       debug:
         var: user_policy_response.content
 
-    - name: Set policy ARN fact
+    - name: Set policy ARNs fact
       set_fact:
-        policy_arn: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | first }}"
+        policy_arns: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') }}"
       when: action == "delete"
 
-    - name: Debug policy ARN
+    - name: Debug policy ARNs
       debug:
-        var: policy_arn
+        var: policy_arns
       when: action == "delete"
 
-
-    - name: Delete IAM user policy
+    - name: Detach IAM user policies
       uri:
-        url: "{{ target_url }}/iam?Action=DetachUserPolicy&UserName={{ user_name | urlencode }}&PolicyArn={{ policy_arn | urlencode }}"
+        url: "{{ target_url }}/iam?Action=DetachUserPolicy&UserName={{ user_name | urlencode }}&PolicyArn={{ item | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -138,7 +137,8 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: user_response
+      register: detach_policy_response
+      loop: "{{ policy_arns }}"
       when: action == "delete"
 
       
