@@ -218,17 +218,11 @@
       debug:
         var: access_key_response
 
-    - name: Convert XML response to JSON
-      xml:
-        xmlstring: "{{ access_key_response.content }}"
-        pretty_print: True
-      register: access_key_json
-
     - name: Save results
       set_fact:
         task_result: >
           {
-            "CreateAccessKeyResult": {{ access_key_json.ansible_facts.xml }}
+            "CreateAccessKeyResult": {{ access_key_response.content }}
           }
 
     - name: Create IAM policy
