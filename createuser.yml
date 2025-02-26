@@ -113,9 +113,9 @@
       register: user_policy_response
       when: action == "delete"
 
-"    - name: Debug IAM policy
-"      debug:
-"        var: user_policy_response.content
+#    - name: Debug IAM policy
+#      debug:
+#        var: user_policy_response.content
 #      when: action == "delete"
 
     - name: Set policy ARNs fact
@@ -123,8 +123,8 @@
         policy_arns: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | select('match', '^[^\\s]+$') }}"
       when: action == "delete"
 
-"    - name: Debug policy ARNs
-"      debug:
+#    - name: Debug policy ARNs
+#      debug:
 #        var: policy_arns
 #      when: action == "delete"
 
