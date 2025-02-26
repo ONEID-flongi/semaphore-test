@@ -207,8 +207,8 @@
       register: delete_user_response
       when: action == "delete"
 
-    - name: Debug delete user response
-      debug:
-        var: delete_user_response
-      when: action == "delete"
+   # - name: Debug delete user response
+   #   debug:
+   #     var: delete_user_response
+   #   when: action == "delete"
       
