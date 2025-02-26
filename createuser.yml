@@ -1,7 +1,7 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    user_name: "{{ USER_NAME | lower }}"
+    user_name: "{{ user | lower }}"
     target_namespace: "{{ TARGET_NAMESPACE | lower }}"
     action: "{{ ACTION | lower }}"  # "create","delete","modify"
 
@@ -14,10 +14,6 @@
     - name: Debug environment variables
       debug:
         msg:
-#          - "Target URL: {{ target_url }}"
-#          - "Target Namespace: {{ target_namespace }}"
-#          - "user_name Name: {{ user_name }}"
-#          - "Auth Header: {{ auth_header }}"
           - "Action: {{ action }}"
 
     - name: Check if API-KEY is set
@@ -40,10 +36,6 @@
         validate_certs: no
         timeout: 60
       register: target_response
-
-#    - name: Debug target response
-#      debug:
-#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -94,20 +86,20 @@
       register: access_key_response
       when: action == "create"
 
-    - name:
+    - name: Debug access key response
       debug:
         var: access_key_response
 
-    - name: Check if accesskey creation was successful
+    - name: Check if access key creation was successful
       fail:
-        msg: "Failed to create IAM user accesskey. Status code: {{ access_key_response.status }}"
+        msg: "Failed to create IAM user access key. Status code: {{ access_key_response.status }}"
       when: access_key_response.status != 200 and action == "create"
 
     - name: Set AccessKey fact
-        set_fact:
-          AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-          SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-     when: access_key_response.status == 200 and action == "create"
+      set_fact:
+        AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+        SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+      when: access_key_response.status == 200 and action == "create"
 
     - name: Print AccessKey and SecretKey
       debug:
@@ -115,11 +107,6 @@
           - "AccessKeyId: {{ AccessKeyId }}"
           - "SecretAccessKey: {{ SecretAccessKey }}"
       when: access_key_response.status == 200 and action == "create"
-
- #   - name: Debug access key creation response
- #     debug:
- #       var: access_key_response
-
 
     - name: List IAM user policies
       uri:
@@ -134,20 +121,10 @@
       register: user_policy_response
       when: action == "delete"
 
-#    - name: Debug IAM policy
-#      debug:
-#        var: user_policy_response.content
-#      when: action == "delete"
-
     - name: Set policy ARNs fact
       set_fact:
         policy_arns: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | select('match', '^[^\\s]+$') }}"
       when: action == "delete"
-
-#    - name: Debug policy ARNs
-#      debug:
-#        var: policy_arns
-#      when: action == "delete"
 
     - name: Detach IAM user policies
       uri:
@@ -163,11 +140,6 @@
       loop: "{{ policy_arns }}"
       when: action == "delete"
 
-#    - name: Debug detach policy response
-#      debug:
-#        var: detach_policy_response
-#      when: action == "delete"
-
     - name: List IAM user access keys
       uri:
         url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ user_name | urlencode }}"
@@ -181,20 +153,10 @@
       register: access_keys_response
       when: action == "delete"
 
-#    - name: Debug IAM access keys
-#      debug:
-#        var: access_keys_response.content
-#      when: action == "delete"
-
     - name: Set access key IDs fact
       set_fact:
         access_key_ids: "{{ access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[A-Z0-9]+$') }}"
       when: action == "delete"
-
-#    - name: Debug access key IDs
-#      debug:
-#        var: access_key_ids
-#      when: action == "delete"
 
     - name: Delete IAM user access keys
       uri:
@@ -210,11 +172,6 @@
       loop: "{{ access_key_ids }}"
       when: action == "delete"
 
-#    - name: Debug delete access key response
-#      debug:
-#        var: delete_access_key_response
-#      when: action == "delete"
-
     - name: Delete IAM user
       uri:
         url: "{{ target_url }}/iam?Action=DeleteUser&UserName={{ user_name | urlencode }}&Path=/"
@@ -227,9 +184,3 @@
         return_content: yes
       register: delete_user_response
       when: action == "delete"
-
-   # - name: Debug delete user response
-   #   debug:
-   #     var: delete_user_response
-   #   when: action == "delete"
-      
