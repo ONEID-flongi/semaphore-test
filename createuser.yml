@@ -1,9 +1,9 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    user_name: "{{ USER_NAME | lower }} }}"
-    target_namespace: "{{ TARGET_NAMESPACE | lower }} }}"
-    action: "{{ ACTION | lower }} }}"  # "create","delete","modify"
+    user_name: "{{ USER_NAME | lower }}"
+    target_namespace: "{{ TARGET_NAMESPACE | lower }}"
+    action: "{{ ACTION | lower }}"  # "create","delete","modify"
 
   tasks:
     - name: Set environment variables
