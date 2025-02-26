@@ -119,8 +119,9 @@
         AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
         SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
       when: 
-        - access_key_response.status == 200
         - action == "create"
+        - access_key_response.status == 200
+
 
     - name: Print AccessKey and SecretKey
       debug:
@@ -128,8 +129,9 @@
           - "AccessKeyId: {{ AccessKeyId }}"
           - "SecretAccessKey: {{ SecretAccessKey }}"
       when: 
-        - access_key_response.status == 200
         - action == "create"
+        - access_key_response.status == 200
+
 
     # - name: Debug access key creation response
     #   debug:
