@@ -100,9 +100,9 @@
  #       var: access_key_response
 
 
-    - name: Delete IAM user policy
+    - name: list IAM user policy
       uri:
-        url: "{{ target_url }}/iam?UserName={{ user_name | urlencode }}&Action=DeleteUserPermissionsBoundary"
+        url: "{{ target_url }}/iam?Action=ListAttachedUserPoliciesUserName={{ user_name | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -110,8 +110,12 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: user_response
+      register: user_policy_response
       when: action == "delete"
+
+    - name: debug iam policy
+      debug:
+        var: user_policy_response.content
 
       
     - name: Delete IAM user
