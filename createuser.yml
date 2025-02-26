@@ -75,13 +75,15 @@
     - name: Debug user creation response
       debug:
         var: user_response
+      when: action == "create"
 
     - name: Check if user creation was successful
       fail:
         msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
       when: 
-        - user_response.status == 200
         - action == "create"
+        - user_response.status == 200
+        
 
     - name: Create IAM access key
       uri:
