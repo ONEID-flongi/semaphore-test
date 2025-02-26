@@ -103,17 +103,18 @@
         msg: "Failed to create IAM user accesskey. Status code: {{ access_key_response.status }}"
       when: access_key_response.status != 200 and action == "create"
 
-    - name: Set Acceykey fact
-      set_fact:
-        AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') }}"
-        AccessKeySelector: "{{ access_key_response.content | regex_findall('AccessKeySelector	>(.*?)<') | select('match', '^[^\\s]+$') }}"
-      when: access_key_response.status == 200 and action == "create"
+- name: Set AccessKey fact
+  set_fact:
+    AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+    SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+  when: access_key_response.status == 200 and action == "create"
 
-    - name: Print AccessKey and SecretKey
-      debug: 
-          var: AccessKeyId
-          var: AccessKeySelector
-      when: access_key_response.status == 200 and action == "create"
+- name: Print AccessKey and SecretKey
+  debug:
+    msg:
+      - "AccessKeyId: {{ AccessKeyId }}"
+      - "SecretAccessKey: {{ SecretAccessKey }}"
+  when: access_key_response.status == 200 and action == "create"
 
  #   - name: Debug access key creation response
  #     debug:
