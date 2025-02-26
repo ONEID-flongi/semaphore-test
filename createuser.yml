@@ -79,7 +79,9 @@
     - name: Check if user creation was successful
       fail:
         msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
-      when: user_response.status != 200 and action == "create"
+      when: 
+        - user_response.status == 200
+        - action == "create"
 
     - name: Create IAM access key
       uri:
@@ -107,7 +109,9 @@
       set_fact:
         AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
         SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-      when: access_key_response.status == 200 and action == "create"
+      when: 
+        - access_key_response.status == 200
+        - action == "create"
 
     - name: Print AccessKey and SecretKey
       debug:
