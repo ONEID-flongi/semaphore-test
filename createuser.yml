@@ -113,20 +113,20 @@
       register: user_policy_response
       when: action == "delete"
 
-    - name: Debug IAM policy
-      debug:
-        var: user_policy_response.content
-      when: action == "delete"
+"    - name: Debug IAM policy
+"      debug:
+"        var: user_policy_response.content
+#      when: action == "delete"
 
     - name: Set policy ARNs fact
       set_fact:
         policy_arns: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | select('match', '^[^\\s]+$') }}"
       when: action == "delete"
 
-    - name: Debug policy ARNs
-      debug:
-        var: policy_arns
-      when: action == "delete"
+"    - name: Debug policy ARNs
+"      debug:
+#        var: policy_arns
+#      when: action == "delete"
 
     - name: Detach IAM user policies
       uri:
@@ -142,10 +142,10 @@
       loop: "{{ policy_arns }}"
       when: action == "delete"
 
-    - name: Debug detach policy response
-      debug:
-        var: detach_policy_response
-      when: action == "delete"
+#    - name: Debug detach policy response
+#      debug:
+#        var: detach_policy_response
+#      when: action == "delete"
 
     - name: List IAM user access keys
       uri:
@@ -160,20 +160,20 @@
       register: access_keys_response
       when: action == "delete"
 
-    - name: Debug IAM access keys
-      debug:
-        var: access_keys_response.content
-      when: action == "delete"
+"    - name: Debug IAM access keys
+#      debug:
+#        var: access_keys_response.content
+#      when: action == "delete"
 
     - name: Set access key IDs fact
       set_fact:
         access_key_ids: "{{ access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[A-Z0-9]+$') }}"
       when: action == "delete"
 
-    - name: Debug access key IDs
-      debug:
-        var: access_key_ids
-      when: action == "delete"
+#    - name: Debug access key IDs
+#      debug:
+#        var: access_key_ids
+#      when: action == "delete"
 
     - name: Delete IAM user access keys
       uri:
@@ -189,10 +189,10 @@
       loop: "{{ access_key_ids }}"
       when: action == "delete"
 
-    - name: Debug delete access key response
-      debug:
-        var: delete_access_key_response
-      when: action == "delete"
+#    - name: Debug delete access key response
+#      debug:
+#        var: delete_access_key_response
+#      when: action == "delete"
 
     - name: Delete IAM user
       uri:
