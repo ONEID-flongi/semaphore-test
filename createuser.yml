@@ -72,9 +72,9 @@
       register: user_response
       when: action == "create"
 
-#    - name: Debug user creation response
-#      debug:
-#        var: user_response
+    - name: Debug user creation response
+      debug:
+        var: user_response
 
     - name: Check if user creation was successful
       fail:
