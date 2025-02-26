@@ -218,6 +218,13 @@
       debug:
         var: access_key_response
 
+    - name: Save results
+      set_fact:
+        task_result: >
+          {
+            "CreateAccessKeyResult": {{ access_key_response.stdout | from_json }}
+          }
+
     - name: Create IAM policy
       uri:
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
