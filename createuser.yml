@@ -232,7 +232,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: user_access_keys_response
+      register: user_access_keys_result
       loop: "{{ user_names }}"
       loop_control:
         loop_var: user_name_item
@@ -240,7 +240,7 @@
 
     - name: Set access keys fact for each user
       set_fact:
-        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: (user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$')) | default([])}) }}"
+        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: user_access_keys_result.results[ansible_loop.index0].content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | list }) }}"
       loop: "{{ user_names }}"
       loop_control:
         loop_var: user_name_item
