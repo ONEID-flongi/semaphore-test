@@ -55,7 +55,19 @@
         return_content: yes
       register: target_users
 
-
     - name: Display Users
       debug:
         msg: "{{ target_users.content }}"
+
+    - name: Logout ECS API token
+      uri:
+        validate_certs: no
+        url: "{{ target_url }}/logout"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        return_content: yes
+      register: results_logout
+      when: target_token is defined
