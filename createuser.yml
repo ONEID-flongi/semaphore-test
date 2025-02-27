@@ -238,7 +238,18 @@
         loop_var: user_name_item
       when: action == "list"
 
+    - name: Set access keys fact for each user
+      set_fact:
+        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<')}) }}"
+      loop: "{{ user_names }}"
+      loop_control:
+        loop_var: user_name_item
+      when: action == "list"
+
     - name: Debug user access keys response
       debug:
-        msg: "User: {{ user_name_item }}, Access Keys: {{ user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') }}"
+        msg: "User: {{ item }}, Access Keys: {{ user_access_keys[item] }}"
+      loop: "{{ user_names }}"
+      loop_control:
+        loop_var: item
       when: action == "list"
