@@ -224,7 +224,7 @@
 
     - name: List access keys for each user
       uri:
-        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ item | urlencode }}"
+        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ user_name_item | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
