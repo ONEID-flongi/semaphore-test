@@ -3,7 +3,7 @@
   vars:
     user_name: "{{ USER_NAME | lower }}"
     target_namespace: "{{ TARGET_NAMESPACE | lower }}"
-    action: "{{ ACTION | lower }}"  # "create","delete","modify"
+    action: "{{ ACTION | lower }}"  # "create","delete","modify","list"
 
   tasks:
     - name: Set environment variables
@@ -14,10 +14,6 @@
     - name: Debug environment variables
       debug:
         msg:
-          # - "Target URL: {{ target_url }}"
-          # - "Target Namespace: {{ target_namespace }}"
-          # - "user_name Name: {{ user_name }}"
-          # - "Auth Header: {{ auth_header }}"
           - "Action: {{ action }}"
 
     - name: Check if API-KEY is set
@@ -40,10 +36,6 @@
         validate_certs: no
         timeout: 60
       register: target_response
-
-    # - name: Debug target response
-    #   debug:
-    #     var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -85,7 +77,6 @@
       when: 
         - action == "create"
         - user_response.status != 200
-        
 
     - name: Create IAM access key
       uri:
@@ -122,7 +113,6 @@
         - action == "create"
         - access_key_response.status == 200
 
-
     - name: Print AccessKey and SecretKey
       debug:
         msg:
@@ -131,11 +121,6 @@
       when: 
         - action == "create"
         - access_key_response.status == 200
-
-
-    # - name: Debug access key creation response
-    #   debug:
-    #     var: access_key_response
 
     - name: List IAM user policies
       uri:
@@ -150,20 +135,10 @@
       register: user_policy_response
       when: action == "delete"
 
-    # - name: Debug IAM policy
-    #   debug:
-    #     var: user_policy_response.content
-    #   when: action == "delete"
-
     - name: Set policy ARNs fact
       set_fact:
         policy_arns: "{{ user_policy_response.content | regex_findall('PolicyArn>(.*?)<') | select('match', '^[^\\s]+$') }}"
       when: action == "delete"
-
-    # - name: Debug policy ARNs
-    #   debug:
-    #     var: policy_arns
-    #   when: action == "delete"
 
     - name: Detach IAM user policies
       uri:
@@ -179,11 +154,6 @@
       loop: "{{ policy_arns }}"
       when: action == "delete"
 
-    # - name: Debug detach policy response
-    #   debug:
-    #     var: detach_policy_response
-    #   when: action == "delete"
-
     - name: List IAM user access keys
       uri:
         url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ user_name | urlencode }}"
@@ -197,20 +167,10 @@
       register: access_keys_response
       when: action == "delete"
 
-    # - name: Debug IAM access keys
-    #   debug:
-    #     var: access_keys_response.content
-    #   when: action == "delete"
-
     - name: Set access key IDs fact
       set_fact:
         access_key_ids: "{{ access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[A-Z0-9]+$') }}"
       when: action == "delete"
-
-    # - name: Debug access key IDs
-    #   debug:
-    #     var: access_key_ids
-    #   when: action == "delete"
 
     - name: Delete IAM user access keys
       uri:
@@ -226,11 +186,6 @@
       loop: "{{ access_key_ids }}"
       when: action == "delete"
 
-    # - name: Debug delete access key response
-    #   debug:
-    #     var: delete_access_key_response
-    #   when: action == "delete"
-
     - name: Delete IAM user
       uri:
         url: "{{ target_url }}/iam?Action=DeleteUser&UserName={{ user_name | urlencode }}&Path=/"
@@ -244,7 +199,44 @@
       register: delete_user_response
       when: action == "delete"
 
-    # - name: Debug delete user response
-    #   debug:
-    #     var: delete_user_response
-    #   when: action == "delete"
+    - name: List all IAM users
+      uri:
+        url: "{{ target_url }}/iam?Action=ListUsers"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: list_users_response
+      when: action == "list"
+
+    - name: Debug list users response
+      debug:
+        var: list_users_response
+      when: action == "list"
+
+    - name: Set user names fact
+      set_fact:
+        user_names: "{{ list_users_response.content | regex_findall('UserName>(.*?)<') | select('match', '^[^\\s]+$') }}"
+      when: action == "list"
+
+    - name: List access keys for each user
+      uri:
+        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ item | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes
+      register: user_access_keys_response
+      loop: "{{ user_names }}"
+      when: action == "list"
+
+    - name: Debug user access keys response
+      debug:
+        msg: "User: {{ item }}, Access Keys: {{ user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') }}"
+      when: action == "list"
