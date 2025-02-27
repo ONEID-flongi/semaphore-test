@@ -224,7 +224,7 @@
 
     - name: List access keys for each user
       uri:
-        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ user_name_item | urlencode }}"
+        url: "{{ target_url }}/iam?Action=ListAccessKeys&UserName={{ item | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -234,22 +234,21 @@
         return_content: yes
       register: user_access_keys_result
       loop: "{{ user_names }}"
-      loop_control:
-        loop_var: user_name_item
+      when: action == "list"
+
+    - name: Initialize user_access_keys dictionary
+      set_fact:
+        user_access_keys: {}
       when: action == "list"
 
     - name: Set access keys fact for each user
       set_fact:
-        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: user_access_keys_result.results[ansible_loop.index0].content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | list }) }}"
-      loop: "{{ user_names }}"
-      loop_control:
-        loop_var: user_name_item
+        user_access_keys: "{{ user_access_keys | combine({item.item: item.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | list}) }}"
+      loop: "{{ user_access_keys_result.results }}"
       when: action == "list"
 
     - name: Debug user access keys response
       debug:
         msg: "User: {{ item }}, Access Keys: {{ user_access_keys[item] }}"
       loop: "{{ user_names }}"
-      loop_control:
-        loop_var: item
       when: action == "list"
