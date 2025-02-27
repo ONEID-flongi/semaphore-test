@@ -240,7 +240,7 @@
 
     - name: Set access keys fact for each user
       set_fact:
-        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<')}) }}"
+        user_access_keys: "{{ user_access_keys | default({}) | combine({user_name_item: (user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<')) | default([])}) }}"
       loop: "{{ user_names }}"
       loop_control:
         loop_var: user_name_item
