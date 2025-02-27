@@ -234,9 +234,11 @@
         return_content: yes
       register: user_access_keys_response
       loop: "{{ user_names }}"
+      loop_control:
+        loop_var: user_name_item
       when: action == "list"
 
     - name: Debug user access keys response
       debug:
-        msg: "User: {{ item }}, Access Keys: {{ user_access_keys_response.results | map(attribute='content') | map('regex_findall', 'AccessKeyId>(.*?)<') | list }}"
+        msg: "User: {{ user_name_item }}, Access Keys: {{ user_access_keys_response.content | regex_findall('AccessKeyId>(.*?)<') }}"
       when: action == "list"
