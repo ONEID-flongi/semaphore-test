@@ -252,3 +252,16 @@
         msg: "User: {{ item }}, Access Keys: {{ user_access_keys[item] }}"
       loop: "{{ user_names }}"
       when: action == "list"
+
+
+    - name: Logout ECS API token
+      uri:
+        validate_certs: no
+        url: "{{ target_url }}/logout"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        return_content: yes
+      register: results_logout
