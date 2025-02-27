@@ -246,6 +246,7 @@
         user_access_keys: "{{ user_access_keys | combine({item.item: item.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | list}) }}"
       loop: "{{ user_access_keys_result.results }}"
       when: action == "list"
+      no_log: true
 
     - name: Debug user access keys response
       debug:
