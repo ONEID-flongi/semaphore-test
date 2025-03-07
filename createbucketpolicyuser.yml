@@ -176,7 +176,7 @@
       register: content
       ignore_errors: yes
 
-    - name: Check if Creation successful
+    - name: Check if bucket creation was successful
       fail:
         msg: "Failed to create Bucket: {{ content.content }}"
       when: content.status != 200
@@ -191,11 +191,8 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
+        ignore_errors: yes
       register: user_response
-
- #   - name: Debug user creation response
- #     debug:
- #       var: user_response
 
     - name: Check if user creation was successful
       fail:
@@ -212,6 +209,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
+        ignore_errors: yes
       register: access_key_response
       
     - name: Check if Key creation was successful
@@ -245,11 +243,13 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
+        ignore_errors: yes
       register: policy_response
-
-#    - name: Debug policy creation response
-#      debug:
-#        var: policy_response.json
+      
+    - name: Check if IAM Policy Creation successful
+      fail:
+        msg: "Failed to create Bucket: {{ policy_response.content }}"
+      when: policy_response.status != 200
 
     - name: Attach IAM user policy
       uri:
@@ -261,6 +261,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
+        ignore_errors: yes
       register: attach_policy_response
 
     - name: Check if attach was successful
