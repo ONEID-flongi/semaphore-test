@@ -218,19 +218,20 @@
       debug:
         var: access_key_response.content
 
-#    - name: Debug access key creation response
-#      debug:
-#        var: access_key_response
+    - name: Set AccessKey fact
+      set_fact:
+        AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+        SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+      when: 
+        - access_key_response.status == 200
 
-#    - name: Save results
-#      set_fact:
-#        task_result: >
-#          {
-#            "CreateAccessKeyResult": {{ access_key_response.content }}
-#          }
-#    - name : debug accesskey
-#      debug:
-#        var : task_result
+    - name: Print AccessKey and SecretKey
+      debug:
+        msg:
+          - "AccessKeyId: {{ AccessKeyId }}"
+          - "SecretAccessKey: {{ SecretAccessKey }}"
+      when: 
+        - access_key_response.status == 200
 
     - name: Create IAM policy
       uri:
