@@ -263,6 +263,11 @@
         return_content: yes
       register: attach_policy_response
 
+    - name: Check if attach was successful
+      fail:
+        msg: "Failed to attach IAM Policy. Status code: {{ attach_policy_response.status }}"
+      when: attach_policy_response.status != 200
+
 #    - name: Debug attach policy response
 #      debug:
 #        var: attach_policy_response
