@@ -213,10 +213,12 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
+      
+    - name: Check if Key creation was successful
+      fail:
+        msg: "Failed to create IAM user Access Key. Status code: {{ access_key_response.status }}"
+      when: access_key_response.status != 200
 
-    - name: ACCESS KEY
-      debug:
-        var: access_key_response.content
 
     - name: Set AccessKey fact
       set_fact:
