@@ -211,8 +211,8 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-        ignore_errors: yes
       register: access_key_response
+      ignore_errors: yes
       
     - name: Check if Key creation was successful
       fail:
@@ -245,7 +245,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-        ignore_errors: yes
+      ignore_errors: yes
       register: policy_response
       
     - name: Check if IAM Policy Creation successful
@@ -263,7 +263,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-        ignore_errors: yes
+      ignore_errors: yes
       register: attach_policy_response
 
     - name: Check if attach was successful
