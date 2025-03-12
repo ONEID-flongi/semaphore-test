@@ -94,14 +94,16 @@
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
         policy_arn: "urn:ecs:iam::{{ TARGET_NAMESPACE }}:policy/{{ POLICY_NAME }}"
 
-#    - name: Debug environment variables
-#      debug:
-#        msg:
-#          - "Target URL: {{ target_url }}"
-#          - "Target Namespace: {{ target_namespace }}"
-#          - "Bucket Name: {{ bucket_name }}"
-#          - "Auth Header: {{ auth_header }}"
-
+    - name: Debug environment variables
+      debug:
+        msg:
+          - "Target URL: {{ target_url }}"
+          - "Target Namespace: {{ target_namespace }}"
+          - "Bucket Name: {{ bucket_name }}"
+          - "Auth Header: {{ auth_header }}"
+          - "User Name : {{ user_name }}"
+          - "Policy  Name : {{ policy_name }}"
+          
     - name: Check if API-KEY is set
       fail:
         msg: "API-KEY environment variable is not set."
