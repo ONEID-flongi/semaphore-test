@@ -1,7 +1,7 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    bucket_name: "{{ BUCKET_NAME }}"
+    bucket_names: "{{ BUCKET_NAME.split(',') }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
     action: "{{ ACTION | lower }}"  # "create","delete","list"
   tasks:
@@ -15,7 +15,7 @@
         #msg:
           #- "Target URL: {{ target_url }}"
           #- "Target Namespace: {{ target_namespace }}"
-          #- "Bucket Name: {{ bucket_name }}"
+          #- "Bucket Names: {{ bucket_names }}"
           #- "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
@@ -67,7 +67,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ bucket_name }}</name>
+            <name>{{ item }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -91,6 +91,7 @@
         validate_certs: no
       register: content
       ignore_errors: yes
+      loop: "{{ bucket_names }}"
       when: action == "create"
 
     - name: Check if Creation successful
@@ -128,7 +129,7 @@
 
     - name: Delete bucket
       uri:
-        url: "{{ target_url }}/object/bucket/{{ bucket_name }}/deactivate?namespace={{ target_namespace }}"
+        url: "{{ target_url }}/object/bucket/{{ item }}/deactivate?namespace={{ target_namespace }}"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
@@ -136,8 +137,15 @@
         validate_certs: no
         return_content: yes
       register: delete_bucket_response
+      loop: "{{ bucket_names }}"
       when: action == "delete"
 
+    - name: Check if bucket deletion was successful
+      fail:
+        msg: "Failed to delete bucket. Status code: {{ delete_bucket_response.status }}"
+      when: 
+        - action == "delete"
+        - delete_bucket_response.status != 202
 
     - name: Logout ECS API token
       uri:
