@@ -218,6 +218,10 @@
       fail:
         msg: "Failed to create IAM user Access Key. Status code: {{ access_key_response.status }}"
       when: access_key_response.status != 200
+      
+    - name: Debug target response
+      debug:
+        var: access_key_response.content
 
 
     - name: Set AccessKey fact
