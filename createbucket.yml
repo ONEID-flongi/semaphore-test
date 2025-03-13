@@ -128,11 +128,10 @@
 
     - name: Delete bucket
       uri:
-        url: "{{ target_url }}/object/bucket/{{ bucket_name }}/deactivate"
+        url: "{{ target_url }}/object/bucket/{{ bucket_name }}/deactivate?namespace={{ target_namespace }}"
         method: POST
         headers:
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"          
-          x-emc-namespace: "{{ target_namespace }}"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-emc-empty-bucket: true
         validate_certs: no
         return_content: yes
