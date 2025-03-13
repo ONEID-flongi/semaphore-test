@@ -175,7 +175,12 @@
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
-      register: content
+      register: bucket_response
+      
+    - name: BUCKET XML
+      debug:
+       msg: "{{ bucket_response.content }}"
+      
 
     - name: Create IAM user
       uri:
@@ -188,6 +193,11 @@
         validate_certs: no
         return_content: yes
       register: user_response
+
+    - name: IAM User XML
+      debug:
+       msg: "{{ user_response.content }}"
+
 
     - name: Create IAM access key
       uri:
@@ -202,7 +212,7 @@
       register: access_key_response
       
 
-    - name: Debug target response
+    - name: AccessKey XML
       debug:
        msg: "{{ access_key_response.content }}"
 
@@ -234,6 +244,10 @@
         return_content: yes
       register: policy_response
 
+    - name: POLICY XML
+      debug:
+       msg: "{{ policy_response.content }}"
+
     - name: Attach IAM user policy
       uri:
         url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ user_name | urlencode }}"
@@ -243,9 +257,13 @@
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
-        return_content: yes
-        
+        return_content: yes        
       register: attach_policy_response
+      
+    - name: ATTACH POLICY XML
+      debug:
+       msg: "{{ attach_policy_response.content }}"
+  
 
 #    - name: Debug attach policy response
 #      debug:
