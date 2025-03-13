@@ -10,13 +10,13 @@
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
 
-    - name: Debug environment variables
-      debug:
-        msg:
-          - "Target URL: {{ target_url }}"
-          - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Name: {{ bucket_name }}"
-          - "Auth Header: {{ auth_header }}"
+    #- name: Debug environment variables
+      #debug:
+        #msg:
+          #- "Target URL: {{ target_url }}"
+          #- "Target Namespace: {{ target_namespace }}"
+          #- "Bucket Name: {{ bucket_name }}"
+          #- "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
       fail:
