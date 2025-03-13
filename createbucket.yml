@@ -131,7 +131,8 @@
         url: "{{ target_url }}/object/bucket/{{ bucket_name }}"
         method: DELETE
         headers:
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"          
+          x-emc-namespace: "{{ target_namespace }}"
           x-emc-empty-bucket: true
         validate_certs: no
         return_content: yes
