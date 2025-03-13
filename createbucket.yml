@@ -118,7 +118,7 @@
 
     - name: Set bucket names fact
       set_fact:
-        bucket_names: "{{ list_buckets_response.content | regex_findall('<name>(.*?)</name>') | select('match', '^[^\\s]+$') }}"
+        bucket_names: "{{ list_buckets_response.content | regex_findall('<name>([^<]+)</name>') | select('match', '^[^\\s]+$') | difference(['LastModified']) }}"
       when: action == "list"
 
     - name: list buckets 
