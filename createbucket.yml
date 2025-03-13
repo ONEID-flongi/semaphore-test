@@ -132,6 +132,7 @@
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-empty-bucket: true
         validate_certs: no
         return_content: yes
       register: delete_bucket_response
