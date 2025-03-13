@@ -3,6 +3,7 @@
   vars:
     bucket_name: "{{ BUCKET_NAME }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
+    action: "{{ ACTION | lower }}"  # "create","delete","list"
   tasks:
     - name: Set environment variables
       set_fact:
@@ -90,11 +91,54 @@
         validate_certs: no
       register: content
       ignore_errors: yes
+      when: action == "create"
 
     - name: Check if Creation successful
       fail:
         msg: "Failed to create Bucket: {{ content.content }}"
-      when: content.status != 200
+      when: 
+        - action == "create"
+        - content.status != 200
+
+    - name: List buckets
+      uri:
+        url: "{{ target_url }}/object/bucket?namespace={{ target_namespace }}"
+        method: GET
+        headers:
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        validate_certs: no
+        return_content: yes
+      register: list_buckets_response
+      when: action == "list"
+
+    - name: Debug list buckets response
+      debug:
+        var: list_buckets_response
+      when: action == "list"
+
+    - name: Set bucket names fact
+      set_fact:
+        bucket_names: "{{ list_buckets_response.content | regex_findall('name>(.*?)<') | select('match', '^[^\\s]+$') }}"
+      when: action == "list"
+
+    - name: Delete bucket
+      uri:
+        url: "{{ target_url }}/object/bucket/{{ bucket_name }}"
+        method: DELETE
+        headers:
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-empty-bucket: true
+        validate_certs: no
+        return_content: yes
+      register: delete_bucket_response
+      when: action == "delete"
+
+    - name: Check if bucket deletion was successful
+      fail:
+        msg: "Failed to delete bucket. Status code: {{ delete_bucket_response.status }}"
+      when: 
+        - action == "delete"
+        - delete_bucket_response.status != 202
 
     - name: Logout ECS API token
       uri:
