@@ -121,6 +121,11 @@
         bucket_names: "{{ list_buckets_response.content | regex_findall('name>(.*?)<') | select('match', '^[^\\s]+$') }}"
       when: action == "list"
 
+    - name: list buckets 
+      debug:
+        var: bucket_names
+      when: action == "list"
+
     - name: Delete bucket
       uri:
         url: "{{ target_url }}/object/bucket/{{ bucket_name }}"
