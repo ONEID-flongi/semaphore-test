@@ -176,12 +176,6 @@
           </object_bucket_create>
         validate_certs: no
       register: content
-      ignore_errors: yes
-
-    - name: Check if bucket creation was successful
-      fail:
-        msg: "Failed to create Bucket: {{ content.content }}"
-      when: content.status != 200
 
     - name: Create IAM user
       uri:
