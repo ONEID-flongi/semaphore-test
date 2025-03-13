@@ -145,7 +145,7 @@
         msg: "Failed to delete bucket. Status code: {{ delete_bucket_response.status }}"
       when: 
         - action == "delete"
-        - delete_bucket_response.status != 202
+        - delete_bucket_response.status != 200
 
     - name: Logout ECS API token
       uri:
