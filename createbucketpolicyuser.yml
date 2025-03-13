@@ -187,13 +187,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      ignore_errors: yes
       register: user_response
-
-    - name: Check if user creation was successful
-      fail:
-        msg: "Failed to create IAM user. Status code: {{ user_response.status }}"
-      when: user_response.status != 200
 
     - name: Create IAM access key
       uri:
@@ -206,12 +200,6 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
-      ignore_errors: yes
-      
-    - name: Check if Key creation was successful
-      fail:
-        msg: "Failed to create IAM user Access Key. Status code: {{ access_key_response.status }}"
-      when: access_key_response.status != 200
       
 
     - name: Debug target response
@@ -244,13 +232,7 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      ignore_errors: yes
       register: policy_response
-      
-    - name: Check if IAM Policy Creation successful
-      fail:
-        msg: "Failed to create Bucket: {{ policy_response.content }}"
-      when: policy_response.status != 200
 
     - name: Attach IAM user policy
       uri:
@@ -262,13 +244,8 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      ignore_errors: yes
+        
       register: attach_policy_response
-
-    - name: Check if attach was successful
-      fail:
-        msg: "Failed to attach IAM Policy. Status code: {{ attach_policy_response.status }}"
-      when: attach_policy_response.status != 200
 
 #    - name: Debug attach policy response
 #      debug:
