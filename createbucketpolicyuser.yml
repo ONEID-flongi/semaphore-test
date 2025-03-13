@@ -222,23 +222,23 @@
 
     - name: Debug target response
       debug:
-        msg: "{{ access_key_response.content }}"
+       msg: "{{ access_key_response.content }}"
 
 
-    - name: Set AccessKey fact
-      set_fact:
-        AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-        SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-      when: 
-        - access_key_response.status == 200
+    #- name: Set AccessKey fact
+      #set_fact:
+        #AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+        #SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+      #when: 
+        #- access_key_response.status == 200
 
-    - name: Print AccessKey and SecretKey
-      debug:
-        msg:
-          - "<AccessKeyId:{{ AccessKeyId }}>"
-          - "<SecretAccessKey:{{ SecretAccessKey }}>"
-      when: 
-        - access_key_response.status == 200
+    #- name: Print AccessKey and SecretKey
+      #debug:
+        #msg:
+          #- "<AccessKeyId:{{ AccessKeyId }}>"
+          #- "<SecretAccessKey:{{ SecretAccessKey }}>"
+      #when: 
+        #- access_key_response.status == 200
 
     - name: Create IAM policy
       uri:
