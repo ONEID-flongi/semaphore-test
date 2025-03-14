@@ -146,10 +146,13 @@
 
     - name: Check if bucket deletion was successful
       fail:
-        msg: "Failed to delete bucket. Status code: {{ delete_bucket_response.status }}"
+        msg: "Failed to delete Bucket: {{ item }}. Response: {{ delete_bucket_response.results[item_index].content }}"
       when: 
         - action == "delete"
-        - delete_bucket_response.status != 200
+        - delete_bucket_response.results[item_index].status != 200
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
 
     - name: Logout ECS API token
       uri:
