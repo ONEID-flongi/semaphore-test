@@ -1,8 +1,8 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    bucket_names: "{{ BUCKET_NAME.split(',') }}"
-    target_namespace: "{{ TARGET_NAMESPACE }}"
+    bucket_names: "{{ BUCKET_NAME.split(',') | lower }}"
+    target_namespace: "{{ TARGET_NAMESPACE | lower }}"
     action: "{{ ACTION | lower }}"  # "create","delete","list"
   tasks:
     - name: Set environment variables
