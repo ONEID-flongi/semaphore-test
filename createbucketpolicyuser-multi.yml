@@ -234,7 +234,7 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.bucket_name) | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.0) | to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -243,20 +243,17 @@
         validate_certs: no
         return_content: yes
       register: policy_response
-      with_items:
-        - { bucket_name: "{{ bucket_names[0] }}", policy_name: "{{ policy_names[0] }}" }
-        - { bucket_name: "{{ bucket_names[1] }}", policy_name: "{{ policy_names[1] }}" }
-        # Add more items as needed
+      loop: "{{ bucket_names | zip(policy_names) }}"
+      loop_control:
+        label: "{{ item.1 }}"
 
     - name: POLICY XML
       debug:
        msg: "{{ policy_response.results[item_index].content }}"
-      with_items:
-        - { bucket_name: "{{ bucket_names[0] }}", policy_name: "{{ policy_names[0] }}" }
-        - { bucket_name: "{{ bucket_names[1] }}", policy_name: "{{ policy_names[1] }}" }
-        # Add more items as needed
+      loop: "{{ bucket_names | zip(policy_names) }}"
       loop_control:
         index_var: item_index
+        label: "{{ item.1 }}"
 
     - name: Attach IAM user policy
       uri:
