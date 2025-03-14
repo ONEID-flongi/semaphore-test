@@ -71,8 +71,8 @@
               "s3:ListAllMyBuckets"
             ],
             "Resource": [
-              "arn:aws:s3:::{{ bucket_name }}/*",
-              "arn:aws:s3:::{{ bucket_name }}"
+              "arn:aws:s3:::{{ item.0 }}/*",
+              "arn:aws:s3:::{{ item.0 }}"
             ],
             "Effect": "Allow",
             "Sid": "VisualEditor0"
