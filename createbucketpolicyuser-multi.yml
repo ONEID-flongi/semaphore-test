@@ -307,21 +307,21 @@
 
     - name: Check if policy attachment was successful
       fail:
-        msg: "Failed to attach Policy to User: {{ item }}. Response: {{ attach_policy_response.results[item_index].content }}"
+        msg: "Failed to attach Policy to User: {{ item.0 }}. Response: {{ attach_policy_response.results[item_index].content }}"
       when: 
         - attach_policy_response.results[item_index].status != 200
-      loop: "{{ user_names }}"
+      loop: "{{ user_names | zip(policy_names) }}"
       loop_control:
         index_var: item_index
-        label: "{{ item }}"
+        label: "{{ item.0 }}"
 
     - name: ATTACH POLICY XML
       debug:
        msg: "{{ attach_policy_response.results[item_index].content }}"
-      loop: "{{ user_names }}"
+      loop: "{{ user_names | zip(policy_names) }}"
       loop_control:
         index_var: item_index
-        label: "{{ item }}"
+        label: "{{ item.0 }}"
 
     - name: Logout ECS API token
       uri:
