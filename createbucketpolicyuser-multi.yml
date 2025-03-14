@@ -81,7 +81,7 @@
             "Action": [
               "s3:ListAllMyBuckets"
             ],
-            "Resource": "arn:aws:s3:::{{ item.0 }}",
+            "Resource": "*",
             "Effect": "Allow",
             "Sid": "VisualEditor1"
           }
