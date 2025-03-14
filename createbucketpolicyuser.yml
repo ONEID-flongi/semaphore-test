@@ -1,46 +1,109 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    bucket_names: "{{ BUCKET_NAME.split(',') }}"
+    bucket_name: "{{ BUCKET_NAME }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
-    user_names: "{{ USER_NAME.split(',') }}"
-    acl_template: |
-      <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-        <Owner>
-          <ID>{{ owner_id }}</ID>
-          <DisplayName>{{ owner_display_name }}</DisplayName>
-        </Owner>
-        <AccessControlList>
-          <Grant>
-            <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
-              <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
-            </Grantee>
-            <Permission>WRITE</Permission>
-          </Grant>
-          <Grant>
-            <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
-              <ID>{{ user_name }}</ID>
-              <DisplayName>{{ user_name }}</DisplayName>
-            </Grantee>
-            <Permission>FULL_CONTROL</Permission>
-          </Grant>
-        </AccessControlList>
-      </AccessControlPolicy>
+    user_name: "{{ USER_NAME }}"
+    policy_name: "{{ POLICY_NAME }}"
+    policy_description: "Policy for managing access"
+    policy_json: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "s3:GetObject",
+              "s3:GetObjectAcl",
+              "s3:GetObjectLegalHold",
+              "s3:GetObjectRetention",
+              "s3:GetObjectTagging",
+              "s3:GetObjectVersion",
+              "s3:GetObjectVersionAcl",
+              "s3:GetObjectVersionTagging",
+              "s3:GetObjectVersionForReplication",
+              "s3:GetDetailedReplicationStatus",
+              "s3:ListMultipartUploadParts",
+              "s3:ListBucketVersions",
+              "s3:GetBucketVersioning",
+              "s3:GetBucketObjectLockConfiguration",
+              "s3:GetBucketAcl",
+              "s3:GetBucketCORS",
+              "s3:GetLifecycleConfiguration",
+              "s3:ListBucketMultipartUploads",
+              "s3:GetBucketPolicy",
+              "s3:GetReplicationConfiguration",
+              "s3:GetBucketNotification",
+              "s3:GetBucketMetaDataSearchKey",
+              "s3:GetBucketLocation",
+              "s3:GetBucketLogging",
+              "s3:CreateBucket",
+              "s3:DeleteBucket",
+              "s3:PutBucketCORS",
+              "s3:PutBucketVersioning",
+              "s3:PutBucketObjectLockConfiguration",
+              "s3:EnableObjectLock",
+              "s3:PutLifecycleConfiguration",
+              "s3:PutObject",
+              "s3:DeleteObject",
+              "s3:DeleteObjectVersion",
+              "s3:AbortMultipartUpload",
+              "s3:PutObjectLegalHold",
+              "s3:PutObjectRetention",
+              "s3:BypassGovernanceRetention",
+              "s3:PutBucketLogging",
+              "s3:PutObjectTagging",
+              "s3:PutObjectVersionTagging",
+              "s3:DeleteObjectTagging",
+              "s3:DeleteObjectVersionTagging",
+              "s3:PutBucketAcl",
+              "s3:PutBucketPolicy",
+              "s3:DeleteBucketPolicy",
+              "s3:PutObjectAcl",
+              "s3:PutObjectVersionAcl",
+              "s3:PutReplicationConfiguration",
+              "s3:DeleteReplicationConfiguration",
+              "s3:ReplicateObject",
+              "s3:ReplicateTags",
+              "s3:ReplicateDelete",
+              "s3:ObjectOwnerOverrideToBucketOwner",
+              "s3:PutBucketNotification",
+              "s3:ListBucket",
+              "s3:ListAllMyBuckets"
+            ],
+            "Resource": [
+              "arn:aws:s3:::{{ bucket_name }}/*",
+              "arn:aws:s3:::{{ bucket_name }}"
+            ],
+            "Effect": "Allow",
+            "Sid": "VisualEditor0"
+          },
+          {
+            "Action": [
+              "s3:ListAllMyBuckets"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "VisualEditor1"
+          }
+        ]
+      }
   tasks:
     - name: Set environment variables
       set_fact:
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
+        policy_arn: "urn:ecs:iam::{{ TARGET_NAMESPACE }}:policy/{{ POLICY_NAME }}"
 
     - name: Debug environment variables
       debug:
         msg:
           - "Target URL: {{ target_url }}"
           - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Names: {{ bucket_names }}"
-          - "User Names: {{ user_names }}"
+          - "Bucket Name: {{ bucket_name }}"
           - "Auth Header: {{ auth_header }}"
-
+          - "User Name : {{ user_name }}"
+          - "Policy  Name : {{ policy_name }}"
+          
     - name: Check if API-KEY is set
       fail:
         msg: "API-KEY environment variable is not set."
@@ -61,6 +124,10 @@
         validate_certs: no
         timeout: 60
       register: target_response
+
+#    - name: Debug target response
+#      debug:
+#        var: target_response
 
     - name: Check if target auth token request was successful
       fail:
@@ -86,7 +153,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ item }}</name>
+            <name>{{ bucket_name }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -108,25 +175,16 @@
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
-      register: create_bucket_response
-      ignore_errors: yes
-      loop: "{{ bucket_names }}"
-      loop_control:
-        label: "{{ item }}"
-
-    - name: Check if bucket creation was successful
-      fail:
-        msg: "Failed to create Bucket: {{ item }}. Response: {{ create_bucket_response.results[item_index].content }}"
-      when: 
-        - create_bucket_response.results[item_index].status != 200
-      loop: "{{ bucket_names }}"
-      loop_control:
-        index_var: item_index
-        label: "{{ item }}"
+      register: bucket_response
+      
+    - name: BUCKET XML
+      debug:
+       msg: "{{ bucket_response.content }}"
+      
 
     - name: Create IAM user
       uri:
-        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ item | urlencode }}&Path=/"
+        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ user_name | urlencode }}&Path=/"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -134,22 +192,16 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: create_user_response
-      loop: "{{ user_names }}"
-      loop_control:
-        label: "{{ item }}"
+      register: user_response
 
     - name: IAM User XML
       debug:
-       msg: "{{ create_user_response.results[item_index].content }}"
-      loop: "{{ user_names }}"
-      loop_control:
-        index_var: item_index
-        label: "{{ item }}"
+       msg: "{{ user_response.content }}"
+
 
     - name: Create IAM access key
       uri:
-        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ item | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -158,39 +210,64 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
-      loop: "{{ user_names }}"
-      loop_control:
-        label: "{{ item }}"
+      
 
     - name: AccessKey XML
       debug:
-       msg: "{{ access_key_response.results[item_index].content }}"
-      loop: "{{ user_names }}"
-      loop_control:
-        index_var: item_index
-        label: "{{ item }}"
+       msg: "{{ access_key_response.content }}"
 
-    - name: Set bucket ACL
+
+    #- name: Set AccessKey fact
+      #set_fact:
+        #AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+        #SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
+      #when: 
+        #- access_key_response.status == 200
+
+    #- name: Print AccessKey and SecretKey
+      #debug:
+        #msg:
+          #- "<AccessKeyId:{{ AccessKeyId }}>"
+          #- "<SecretAccessKey:{{ SecretAccessKey }}>"
+      #when: 
+        #- access_key_response.status == 200
+
+    - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/object/bucket/{{ item }}/acl"
-        method: PUT
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
+        method: POST
         headers:
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"
           Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
         return_content: yes
-        body: "{{ acl_template | format(owner_id='owner_id_value', owner_display_name='owner_display_name_value', user_name=item) }}"
-      register: set_acl_response
-      loop: "{{ bucket_names }}"
-      loop_control:
-        label: "{{ item }}"
+      register: policy_response
 
-    - name: Debug set ACL response
+    - name: POLICY XML
       debug:
-       msg: "{{ set_acl_response.results[item_index].content }}"
-      loop: "{{ bucket_names }}"
-      loop_control:
-        index_var: item_index
-        label: "{{ item }}"
+       msg: "{{ policy_response.content }}"
+
+    - name: Attach IAM user policy
+      uri:
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ user_name | urlencode }}"
+        method: POST
+        headers:
+          Content-Type: "application/xml"
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+          x-emc-namespace: "{{ target_namespace }}"
+        validate_certs: no
+        return_content: yes        
+      register: attach_policy_response
+      
+    - name: ATTACH POLICY XML
+      debug:
+       msg: "{{ attach_policy_response.content }}"
+  
+
+#    - name: Debug attach policy response
+#      debug:
+#        var: attach_policy_response
 
     - name: Logout ECS API token
       uri:
