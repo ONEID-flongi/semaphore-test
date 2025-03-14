@@ -132,7 +132,7 @@
 
     - name: Delete bucket
       uri:
-        url: "{{ target_url }}/object/bucket/{{ item }}/deactivate?namespace={{ target_namespace }}"
+        url: "{{ target_url }}/object/bucket/{{ item }}/deactivate?namespace={{ target_namespace }}&emptyBucket=true"
         method: POST
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
