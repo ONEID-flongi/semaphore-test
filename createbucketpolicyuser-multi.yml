@@ -242,7 +242,7 @@
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template| to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
