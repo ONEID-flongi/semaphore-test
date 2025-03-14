@@ -4,89 +4,28 @@
     bucket_names: "{{ BUCKET_NAME.split(',') }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
     user_names: "{{ USER_NAME.split(',') }}"
-    policy_names: "{{ POLICY_NAME.split(',') }}"
-    policy_description: "Policy for managing access"
-    policy_json_template: |
-      {
-        "Version": "2012-10-17",
-        "Statement": [
-          {
-            "Action": [
-              "s3:GetObject",
-              "s3:GetObjectAcl",
-              "s3:GetObjectLegalHold",
-              "s3:GetObjectRetention",
-              "s3:GetObjectTagging",
-              "s3:GetObjectVersion",
-              "s3:GetObjectVersionAcl",
-              "s3:GetObjectVersionTagging",
-              "s3:GetObjectVersionForReplication",
-              "s3:GetDetailedReplicationStatus",
-              "s3:ListMultipartUploadParts",
-              "s3:ListBucketVersions",
-              "s3:GetBucketVersioning",
-              "s3:GetBucketObjectLockConfiguration",
-              "s3:GetBucketAcl",
-              "s3:GetBucketCORS",
-              "s3:GetLifecycleConfiguration",
-              "s3:ListBucketMultipartUploads",
-              "s3:GetBucketPolicy",
-              "s3:GetReplicationConfiguration",
-              "s3:GetBucketNotification",
-              "s3:GetBucketMetaDataSearchKey",
-              "s3:GetBucketLocation",
-              "s3:GetBucketLogging",
-              "s3:CreateBucket",
-              "s3:DeleteBucket",
-              "s3:PutBucketCORS",
-              "s3:PutBucketVersioning",
-              "s3:PutBucketObjectLockConfiguration",
-              "s3:EnableObjectLock",
-              "s3:PutLifecycleConfiguration",
-              "s3:PutObject",
-              "s3:DeleteObject",
-              "s3:DeleteObjectVersion",
-              "s3:AbortMultipartUpload",
-              "s3:PutObjectLegalHold",
-              "s3:PutObjectRetention",
-              "s3:BypassGovernanceRetention",
-              "s3:PutBucketLogging",
-              "s3:PutObjectTagging",
-              "s3:PutObjectVersionTagging",
-              "s3:DeleteObjectTagging",
-              "s3:DeleteObjectVersionTagging",
-              "s3:PutBucketAcl",
-              "s3:PutBucketPolicy",
-              "s3:DeleteBucketPolicy",
-              "s3:PutObjectAcl",
-              "s3:PutObjectVersionAcl",
-              "s3:PutReplicationConfiguration",
-              "s3:DeleteReplicationConfiguration",
-              "s3:ReplicateObject",
-              "s3:ReplicateTags",
-              "s3:ReplicateDelete",
-              "s3:ObjectOwnerOverrideToBucketOwner",
-              "s3:PutBucketNotification",
-              "s3:ListBucket",
-              "s3:ListAllMyBuckets"
-            ],
-            "Resource": [
-              "arn:aws:s3:::{{ bucket_name }}/*",
-              "arn:aws:s3:::{{ bucket_name }}"
-            ],
-            "Effect": "Allow",
-            "Sid": "VisualEditor0"
-          },
-          {
-            "Action": [
-              "s3:ListAllMyBuckets"
-            ],
-            "Resource": "*",
-            "Effect": "Allow",
-            "Sid": "VisualEditor1"
-          }
-        ]
-      }
+    acl_template: |
+      <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+        <Owner>
+          <ID>{{ owner_id }}</ID>
+          <DisplayName>{{ owner_display_name }}</DisplayName>
+        </Owner>
+        <AccessControlList>
+          <Grant>
+            <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+              <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+            </Grantee>
+            <Permission>WRITE</Permission>
+          </Grant>
+          <Grant>
+            <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+              <ID>{{ user_name }}</ID>
+              <DisplayName>{{ user_name }}</DisplayName>
+            </Grantee>
+            <Permission>FULL_CONTROL</Permission>
+          </Grant>
+        </AccessControlList>
+      </AccessControlPolicy>
   tasks:
     - name: Set environment variables
       set_fact:
@@ -100,7 +39,6 @@
           - "Target Namespace: {{ target_namespace }}"
           - "Bucket Names: {{ bucket_names }}"
           - "User Names: {{ user_names }}"
-          - "Policy Names: {{ policy_names }}"
           - "Auth Header: {{ auth_header }}"
 
     - name: Check if API-KEY is set
@@ -232,48 +170,24 @@
         index_var: item_index
         label: "{{ item }}"
 
-    - name: Create IAM policy
+    - name: Set bucket ACL
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item) | to_json | urlencode }}"
-        method: POST
+        url: "{{ target_url }}/object/bucket/{{ item }}/acl"
+        method: PUT
         headers:
-          Content-Type: "application/xml"
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
-          x-emc-namespace: "{{ target_namespace }}"
-        validate_certs: no
+          Content-Type: "application/xml"
         return_content: yes
-      register: policy_response
+        body: "{{ acl_template | format(owner_id='owner_id_value', owner_display_name='owner_display_name_value', user_name=item) }}"
+      register: set_acl_response
       loop: "{{ bucket_names }}"
       loop_control:
         label: "{{ item }}"
 
-    - name: POLICY XML
+    - name: Debug set ACL response
       debug:
-       msg: "{{ policy_response.results[item_index].content }}"
+       msg: "{{ set_acl_response.results[item_index].content }}"
       loop: "{{ bucket_names }}"
-      loop_control:
-        index_var: item_index
-        label: "{{ item }}"
-
-    - name: Attach IAM user policy
-      uri:
-        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item | urlencode }}&UserName={{ item | urlencode }}"
-        method: POST
-        headers:
-          Content-Type: "application/xml"
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"
-          x-emc-namespace: "{{ target_namespace }}"
-        validate_certs: no
-        return_content: yes        
-      register: attach_policy_response
-      loop: "{{ user_names }}"
-      loop_control:
-        label: "{{ item }}"
-
-    - name: ATTACH POLICY XML
-      debug:
-       msg: "{{ attach_policy_response.results[item_index].content }}"
-      loop: "{{ user_names }}"
       loop_control:
         index_var: item_index
         label: "{{ item }}"
