@@ -233,6 +233,13 @@
         index_var: item_index
         label: "{{ item }}"
 
+    - name: Debug policy document
+      debug:
+        msg: "{{ policy_json_template | format(bucket_name=item.0) | to_json }}"
+      loop: "{{ bucket_names | zip(policy_names) }}"
+      loop_control:
+        label: "{{ item.1 }}"
+
     - name: Create IAM policy
       uri:
         url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.0) | to_json | urlencode }}"
@@ -248,6 +255,13 @@
       loop_control:
         label: "{{ item.1 }}"
 
+    - name: POLICY XML
+      debug:
+       msg: "{{ policy_response.results[item_index].content }}"
+      loop: "{{ bucket_names | zip(policy_names) }}"
+      loop_control:
+        index_var: item_index
+        label: "{{ item.1 }}"
 
     - name: Attach IAM user policy
       uri:
