@@ -291,7 +291,7 @@
 
     - name: Attach IAM user policy
       uri:
-        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item.policy_name | urlencode }}&UserName={{ item.user_name | urlencode }}"
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item.1 | urlencode }}&UserName={{ item.0 | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -300,28 +300,28 @@
         validate_certs: no
         return_content: yes        
       register: attach_policy_response
-      loop: "{{ user_names | zip(policy_names) | map('combine', ['user_name', 'policy_name']) }}"
+      loop: "{{ user_names | zip(policy_names) }}"
       loop_control:
-        label: "{{ item.user_name }}"
+        label: "{{ item.0 }}"
       ignore_errors: yes
 
     - name: Check if policy attachment was successful
       fail:
-        msg: "Failed to attach Policy to User: {{ item.user_name }}. Response: {{ attach_policy_response.results[item_index].content }}"
+        msg: "Failed to attach Policy to User: {{ item.0 }}. Response: {{ attach_policy_response.results[item_index].content }}"
       when: 
         - attach_policy_response.results[item_index].status != 200
-      loop: "{{ user_names | zip(policy_names) | map('combine', ['user_name', 'policy_name']) }}"
+      loop: "{{ user_names | zip(policy_names) }}"
       loop_control:
         index_var: item_index
-        label: "{{ item.user_name }}"
+        label: "{{ item.0 }}"
 
     - name: ATTACH POLICY XML
       debug:
        msg: "{{ attach_policy_response.results[item_index].content }}"
-      loop: "{{ user_names | zip(policy_names) | map('combine', ['user_name', 'policy_name']) }}"
+      loop: "{{ user_names | zip(policy_names) }}"
       loop_control:
         index_var: item_index
-        label: "{{ item.user_name }}"
+        label: "{{ item.0 }}"
 
     - name: Logout ECS API token
       uri:
