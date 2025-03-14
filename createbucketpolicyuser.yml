@@ -196,16 +196,17 @@
           x-emc-namespace: "{{ target_namespace }}"
         validate_certs: no
         return_content: yes
-      register: user_response
+      register: create_user_response
       loop: "{{ user_names }}"
       loop_control:
         label: "{{ item }}"
 
     - name: IAM User XML
       debug:
-       msg: "{{ user_response.content }}"
+       msg: "{{ create_user_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
+        index_var: item_index
         label: "{{ item }}"
 
     - name: Create IAM access key
@@ -225,9 +226,10 @@
 
     - name: AccessKey XML
       debug:
-       msg: "{{ access_key_response.content }}"
+       msg: "{{ access_key_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
+        index_var: item_index
         label: "{{ item }}"
 
     - name: Create IAM policy
@@ -247,9 +249,10 @@
 
     - name: POLICY XML
       debug:
-       msg: "{{ policy_response.content }}"
+       msg: "{{ policy_response.results[item_index].content }}"
       loop: "{{ policy_names }}"
       loop_control:
+        index_var: item_index
         label: "{{ item }}"
 
     - name: Attach IAM user policy
@@ -269,9 +272,10 @@
 
     - name: ATTACH POLICY XML
       debug:
-       msg: "{{ attach_policy_response.content }}"
+       msg: "{{ attach_policy_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
+        index_var: item_index
         label: "{{ item }}"
 
     - name: Logout ECS API token
