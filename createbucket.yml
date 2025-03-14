@@ -137,6 +137,7 @@
         validate_certs: no
         return_content: yes
       register: delete_bucket_response
+      ignore_errors: yes
       loop: "{{ bucket_names }}"
       when: action == "delete"
 
