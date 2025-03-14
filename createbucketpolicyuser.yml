@@ -148,7 +148,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ item.bucket_name }}</name>
+            <name>{{ item.0 }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -254,7 +254,7 @@
 
     - name: Attach IAM user policy
       uri:
-        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ item.1 | urlencode }}"
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item.2 | urlencode }}&UserName={{ item.1 | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
