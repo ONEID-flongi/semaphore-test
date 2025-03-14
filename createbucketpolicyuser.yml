@@ -3,8 +3,8 @@
   vars:
     bucket_names: "{{ BUCKET_NAME.split(',') }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
-    user_name: "{{ USER_NAME }}"
-    policy_name: "{{ POLICY_NAME }}"
+    user_names: "{{ USER_NAME.split(',') }}"
+    policy_names: "{{ POLICY_NAME.split(',') }}"
     policy_description: "Policy for managing access"
     policy_json_template: |
       {
@@ -92,7 +92,6 @@
       set_fact:
         target_url: "{{ lookup('env', 'TARGET_URL') }}"
         auth_header: "Basic {{ lookup('env', 'API_KEY') }}"
-        policy_arn: "urn:ecs:iam::{{ TARGET_NAMESPACE }}:policy/{{ POLICY_NAME }}"
 
     - name: Debug environment variables
       debug:
@@ -100,10 +99,10 @@
           - "Target URL: {{ target_url }}"
           - "Target Namespace: {{ target_namespace }}"
           - "Bucket Names: {{ bucket_names }}"
+          - "User Names: {{ user_names }}"
+          - "Policy Names: {{ policy_names }}"
           - "Auth Header: {{ auth_header }}"
-          - "User Name : {{ user_name }}"
-          - "Policy  Name : {{ policy_name }}"
-          
+
     - name: Check if API-KEY is set
       fail:
         msg: "API-KEY environment variable is not set."
@@ -149,7 +148,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ item }}</name>
+            <name>{{ item.bucket_name }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -173,20 +172,23 @@
         validate_certs: no
       register: bucket_response
       ignore_errors: yes
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop_control:
+        label: "{{ item.0 }}"
 
     - name: Check if bucket creation was successful
       fail:
-        msg: "Failed to create Bucket: {{ item }}. Response: {{ bucket_response.results[item_index].content }}"
+        msg: "Failed to create Bucket: {{ item.0 }}. Response: {{ bucket_response.results[item_index].content }}"
       when: 
         - bucket_response.results[item_index].status != 200
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
       loop_control:
         index_var: item_index
-      
+        label: "{{ item.0 }}"
+
     - name: Create IAM user
       uri:
-        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ user_name | urlencode }}&Path=/"
+        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ item.1 | urlencode }}&Path=/"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -195,14 +197,20 @@
         validate_certs: no
         return_content: yes
       register: user_response
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop_control:
+        label: "{{ item.1 }}"
 
     - name: IAM User XML
       debug:
        msg: "{{ user_response.content }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop_control:
+        label: "{{ item.1 }}"
 
     - name: Create IAM access key
       uri:
-        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ item.1 | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -211,14 +219,20 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop_control:
+        label: "{{ item.1 }}"
 
     - name: AccessKey XML
       debug:
        msg: "{{ access_key_response.content }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop_control:
+        label: "{{ item.1 }}"
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item) | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.2 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.0) | to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -227,20 +241,20 @@
         validate_certs: no
         return_content: yes
       register: policy_response
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
       loop_control:
-        index_var: item_index
+        label: "{{ item.2 }}"
 
     - name: POLICY XML
       debug:
        msg: "{{ policy_response.content }}"
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
       loop_control:
-        index_var: item_index
+        label: "{{ item.2 }}"
 
     - name: Attach IAM user policy
       uri:
-        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ user_name | urlencode }}"
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn={{ policy_arn | urlencode }}&UserName={{ item.1 | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -249,16 +263,16 @@
         validate_certs: no
         return_content: yes        
       register: attach_policy_response
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
       loop_control:
-        index_var: item_index
-      
+        label: "{{ item.1 }}"
+
     - name: ATTACH POLICY XML
       debug:
        msg: "{{ attach_policy_response.content }}"
-      loop: "{{ bucket_names }}"
+      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
       loop_control:
-        index_var: item_index
+        label: "{{ item.1 }}"
 
     - name: Logout ECS API token
       uri:
