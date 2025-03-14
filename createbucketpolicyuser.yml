@@ -148,7 +148,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ item.0 }}</name>
+            <name>{{ item }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -170,25 +170,25 @@
             <softquota>-1</softquota>
           </object_bucket_create>
         validate_certs: no
-      register: bucket_response
+      register: create_bucket_response
       ignore_errors: yes
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ bucket_names }}"
       loop_control:
-        label: "{{ item.0 }}"
+        label: "{{ item }}"
 
     - name: Check if bucket creation was successful
       fail:
-        msg: "Failed to create Bucket: {{ item.0 }}. Response: {{ bucket_response.results[item_index].content }}"
+        msg: "Failed to create Bucket: {{ item }}. Response: {{ create_bucket_response.results[item_index].content }}"
       when: 
-        - bucket_response.results[item_index].status != 200
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+        - create_bucket_response.results[item_index].status != 200
+      loop: "{{ bucket_names }}"
       loop_control:
         index_var: item_index
-        label: "{{ item.0 }}"
+        label: "{{ item }}"
 
     - name: Create IAM user
       uri:
-        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ item.1 | urlencode }}&Path=/"
+        url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ item | urlencode }}&Path=/"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -197,20 +197,20 @@
         validate_certs: no
         return_content: yes
       register: user_response
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: IAM User XML
       debug:
        msg: "{{ user_response.content }}"
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: Create IAM access key
       uri:
-        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ item.1 | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ item | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -219,20 +219,20 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: AccessKey XML
       debug:
        msg: "{{ access_key_response.content }}"
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.2 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.0) | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item) | to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -241,20 +241,20 @@
         validate_certs: no
         return_content: yes
       register: policy_response
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ policy_names }}"
       loop_control:
-        label: "{{ item.2 }}"
+        label: "{{ item }}"
 
     - name: POLICY XML
       debug:
        msg: "{{ policy_response.content }}"
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ policy_names }}"
       loop_control:
-        label: "{{ item.2 }}"
+        label: "{{ item }}"
 
     - name: Attach IAM user policy
       uri:
-        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item.2 | urlencode }}&UserName={{ item.1 | urlencode }}"
+        url: "{{ target_url }}/iam?Action=AttachUserPolicy&PolicyArn=urn:ecs:iam::{{ target_namespace }}:policy/{{ item | urlencode }}&UserName={{ item | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -263,16 +263,16 @@
         validate_certs: no
         return_content: yes        
       register: attach_policy_response
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: ATTACH POLICY XML
       debug:
        msg: "{{ attach_policy_response.content }}"
-      loop: "{{ bucket_names | product(user_names, policy_names) | map('flatten') }}"
+      loop: "{{ user_names }}"
       loop_control:
-        label: "{{ item.1 }}"
+        label: "{{ item }}"
 
     - name: Logout ECS API token
       uri:
