@@ -1,12 +1,12 @@
 - name: Send API Requests to ECS
   hosts: localhost
   vars:
-    bucket_name: "{{ BUCKET_NAME }}"
+    bucket_names: "{{ BUCKET_NAME.split(',') }}"
     target_namespace: "{{ TARGET_NAMESPACE }}"
     user_name: "{{ USER_NAME }}"
     policy_name: "{{ POLICY_NAME }}"
     policy_description: "Policy for managing access"
-    policy_json: |
+    policy_json_template: |
       {
         "Version": "2012-10-17",
         "Statement": [
@@ -99,7 +99,7 @@
         msg:
           - "Target URL: {{ target_url }}"
           - "Target Namespace: {{ target_namespace }}"
-          - "Bucket Name: {{ bucket_name }}"
+          - "Bucket Names: {{ bucket_names }}"
           - "Auth Header: {{ auth_header }}"
           - "User Name : {{ user_name }}"
           - "Policy  Name : {{ policy_name }}"
@@ -125,10 +125,6 @@
         timeout: 60
       register: target_response
 
-#    - name: Debug target response
-#      debug:
-#        var: target_response
-
     - name: Check if target auth token request was successful
       fail:
         msg: "Failed to get target auth token. Status code: {{ target_response.status }}"
@@ -153,7 +149,7 @@
         return_content: yes
         body: |
           <object_bucket_create>
-            <name>{{ bucket_name }}</name>
+            <name>{{ item }}</name>
             <vpool></vpool>
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
@@ -176,12 +172,18 @@
           </object_bucket_create>
         validate_certs: no
       register: bucket_response
-      
-    - name: BUCKET XML
-      debug:
-       msg: "{{ bucket_response.content }}"
-      
+      ignore_errors: yes
+      loop: "{{ bucket_names }}"
 
+    - name: Check if bucket creation was successful
+      fail:
+        msg: "Failed to create Bucket: {{ item }}. Response: {{ bucket_response.results[item_index].content }}"
+      when: 
+        - bucket_response.results[item_index].status != 200
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
+      
     - name: Create IAM user
       uri:
         url: "{{ target_url }}/iam?Action=CreateUser&UserName={{ user_name | urlencode }}&Path=/"
@@ -198,7 +200,6 @@
       debug:
        msg: "{{ user_response.content }}"
 
-
     - name: Create IAM access key
       uri:
         url: "{{ target_url }}/iam?Action=CreateAccessKey&UserName={{ user_name | urlencode }}"
@@ -210,31 +211,14 @@
         validate_certs: no
         return_content: yes
       register: access_key_response
-      
 
     - name: AccessKey XML
       debug:
        msg: "{{ access_key_response.content }}"
 
-
-    #- name: Set AccessKey fact
-      #set_fact:
-        #AccessKeyId: "{{ access_key_response.content | regex_findall('AccessKeyId>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-        #SecretAccessKey: "{{ access_key_response.content | regex_findall('SecretAccessKey>(.*?)<') | select('match', '^[^\\s]+$') | first }}"
-      #when: 
-        #- access_key_response.status == 200
-
-    #- name: Print AccessKey and SecretKey
-      #debug:
-        #msg:
-          #- "<AccessKeyId:{{ AccessKeyId }}>"
-          #- "<SecretAccessKey:{{ SecretAccessKey }}>"
-      #when: 
-        #- access_key_response.status == 200
-
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ policy_name | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item) | to_json | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -243,10 +227,16 @@
         validate_certs: no
         return_content: yes
       register: policy_response
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
 
     - name: POLICY XML
       debug:
        msg: "{{ policy_response.content }}"
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
 
     - name: Attach IAM user policy
       uri:
@@ -259,15 +249,16 @@
         validate_certs: no
         return_content: yes        
       register: attach_policy_response
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
       
     - name: ATTACH POLICY XML
       debug:
        msg: "{{ attach_policy_response.content }}"
-  
-
-#    - name: Debug attach policy response
-#      debug:
-#        var: attach_policy_response
+      loop: "{{ bucket_names }}"
+      loop_control:
+        index_var: item_index
 
     - name: Logout ECS API token
       uri:
