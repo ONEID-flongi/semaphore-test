@@ -243,14 +243,14 @@
         validate_certs: no
         return_content: yes
       register: policy_response
-      loop: "{{ policy_names }}"
+      loop: "{{ bucket_names }}"
       loop_control:
         label: "{{ item }}"
 
     - name: POLICY XML
       debug:
        msg: "{{ policy_response.results[item_index].content }}"
-      loop: "{{ policy_names }}"
+      loop: "{{ bucket_names }}"
       loop_control:
         index_var: item_index
         label: "{{ item }}"
