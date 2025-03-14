@@ -203,7 +203,7 @@
 
     - name: IAM User XML
       debug:
-        msg: "{{ create_user_response.results[item_index].content }}"
+       msg: "{{ create_user_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
         index_var: item_index
@@ -226,15 +226,26 @@
 
     - name: AccessKey XML
       debug:
-        msg: "{{ access_key_response.results[item_index].content }}"
+       msg: "{{ access_key_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
         index_var: item_index
         label: "{{ item }}"
 
+    - name: Generate IAM policies JSON
+      set_fact:
+        policy_json_list: >-
+          {{
+            policy_json_list | default([]) +
+            [
+              policy_json_template | format(bucket_name=item) | to_json
+            ]
+          }}
+      loop: "{{ bucket_names }}"
+
     - name: Create IAM policy
       uri:
-        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_template | format(bucket_name=item.0) | to_json | urlencode }}"
+        url: "{{ target_url }}/iam?Action=CreatePolicy&PolicyName={{ item.1 | urlencode }}&Description={{ policy_description | urlencode }}&PolicyDocument={{ policy_json_list[item_index] | urlencode }}"
         method: POST
         headers:
           Content-Type: "application/xml"
@@ -245,15 +256,9 @@
       register: policy_response
       loop: "{{ bucket_names | zip(policy_names) }}"
       loop_control:
-        label: "{{ item.1 }}"
-
-    - name: POLICY XML
-      debug:
-        msg: "{{ policy_response.results[item_index].content }}"
-      loop: "{{ bucket_names | zip(policy_names) }}"
-      loop_control:
         index_var: item_index
         label: "{{ item.1 }}"
+
 
     - name: Attach IAM user policy
       uri:
@@ -272,7 +277,7 @@
 
     - name: ATTACH POLICY XML
       debug:
-        msg: "{{ attach_policy_response.results[item_index].content }}"
+       msg: "{{ attach_policy_response.results[item_index].content }}"
       loop: "{{ user_names }}"
       loop_control:
         index_var: item_index
