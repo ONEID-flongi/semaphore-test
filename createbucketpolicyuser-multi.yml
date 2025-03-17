@@ -5,7 +5,7 @@
     target_namespace: "{{ TARGET_NAMESPACE | lower }}"
     user_names: "{{ USER_NAME.split(',') | lower }}"
     policy_names: "{{ POLICY_NAME.split(',') | lower }}"
-    policy_description: "Policy for managing access"
+    policy_description: "Policy for managing access on {{ item.0 }}"
     policy_json_template: |
       {
         "Version": "2012-10-17",
