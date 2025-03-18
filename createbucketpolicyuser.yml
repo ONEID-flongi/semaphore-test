@@ -158,7 +158,8 @@
             <filesystem_enabled>false</filesystem_enabled>
             <head_type>s3</head_type>
             <namespace>{{ target_namespace }}</namespace>
-            <is_stale_allowed>false</is_stale_allowed>
+            <is_stale_allowed>true</is_stale_allowed>
+            <is_tso_read_only>true</is_tso_read_only>
             <retention>30</retention>
             <compliance_enabled>false</compliance_enabled>
             <search_metadata>
