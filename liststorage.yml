@@ -62,8 +62,10 @@
       set_fact:
         namespaces: "{{ namespaces_response.content | from_yaml | json_query('namespaces[*].namespace') }}"
 
-    - name: Iterate over namespaces
-      with_items: "{{ namespaces }}"
+    - name: Process each namespace
+      set_fact:
+        namespace_results: []
+      loop: "{{ namespaces }}"
       loop_control:
         loop_var: namespace
       tasks:
@@ -95,8 +97,12 @@
           set_fact:
             quota: "{{ quota_response.content | from_yaml | json_query('namespace.blocksize') | int }}"
 
-        - name: Iterate over buckets
-          with_items: "{{ buckets }}"
+        - name: Initialize total size
+          set_fact:
+            total_size: 0
+
+        - name: Process each bucket
+          loop: "{{ buckets }}"
           loop_control:
             loop_var: bucket
           tasks:
@@ -110,21 +116,21 @@
                 return_content: yes
               register: storage_response
 
-            - name: Parse storage info
+            - name: Add bucket size to total
               set_fact:
-                total_size: "{{ total_size | default(0) + (storage_response.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
+                total_size: "{{ total_size + (storage_response.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
 
         - name: Calculate usage percentage
           set_fact:
             usage_percentage: "{{ (total_size / quota * 100) | round(0) if quota > 0 else 0 }}"
 
-        - name: Output results for namespace
-          debug:
-            msg: |
-              Namespace: {{ namespace }}
-              Total Size: {{ total_size }} GO
-              Quota: {{ quota }} GO
-              Usage Percentage: {{ usage_percentage }}%
+        - name: Append namespace results
+          set_fact:
+            namespace_results: "{{ namespace_results + [{'namespace': namespace, 'total_size': total_size, 'quota': quota, 'usage_percentage': usage_percentage}] }}"
+
+    - name: Output results
+      debug:
+        var: namespace_results
 
     - name: Logout ECS API token
       uri:
