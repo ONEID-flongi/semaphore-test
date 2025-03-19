@@ -87,6 +87,10 @@
         return_content: yes
       register: storage_response
 
+    - name: Debug storage response
+      debug:
+        var: storage_response
+
     - name: Logout ECS API token
       uri:
         validate_certs: no
