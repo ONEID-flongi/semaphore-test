@@ -62,6 +62,10 @@
       set_fact:
         buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
 
+    - name: Debug buckets
+      debug:
+        var: buckets
+
     - name: Get storage info for each bucket
       loop: "{{ buckets }}"
       loop_control:
