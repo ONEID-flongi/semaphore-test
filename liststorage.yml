@@ -87,9 +87,11 @@
         return_content: yes
       register: storage_response
 
-    - name: Debug storage response
+    - name: Debug storage response content
       debug:
-        var: storage_response.content
+        msg: "{{ item.content }}"
+      loop: "{{ storage_response }}"
+
 
     - name: Logout ECS API token
       uri:
