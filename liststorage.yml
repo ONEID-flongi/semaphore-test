@@ -60,7 +60,7 @@
 
     - name: Debug buckets response
       debug:
-        var: buckets_response.content
+        var: buckets_response
 
     - name: Extract bucket names using regex and exclude LastModified
       set_fact:
@@ -72,7 +72,7 @@
 
     - name: Debug buckets
       debug:
-        var: buckets.content
+        var: buckets
 
     - name: Get storage info for each bucket
       loop: "{{ buckets }}"
