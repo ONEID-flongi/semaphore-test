@@ -64,7 +64,12 @@
 
     - name: Parse buckets
       set_fact:
-        buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
+        buckets: >-
+          {{
+            buckets_response.content | 
+            xml | 
+            json_query("object_buckets.object_bucket[*].name")
+          }}
 
     - name: Debug buckets
       debug:
@@ -82,8 +87,6 @@
         validate_certs: no
         return_content: yes
       register: storage_response
-
-
 
     - name: Logout ECS API token
       uri:
