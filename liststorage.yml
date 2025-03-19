@@ -58,6 +58,10 @@
         return_content: yes
       register: buckets_response
 
+    - name: Debug buckets response
+      debug:
+        var: buckets_response   
+
     - name: Parse buckets
       set_fact:
         buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
