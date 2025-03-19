@@ -62,17 +62,11 @@
       debug:
         var: buckets_response   
 
-    - name: Parse buckets response using xmltodict
-      set_fact:
-        parsed_buckets_response: "{{ buckets_response.content | community.general.from_xml }}"
-
-    - name: Extract bucket names
+    - name: Extract bucket names using regex
       set_fact:
         buckets: >-
           {{
-            parsed_buckets_response.object_buckets.object_bucket | 
-            map(attribute='name') | 
-            list
+            buckets_response.content | regex_findall("<name>(.*?)</name>")
           }}
 
     - name: Debug buckets
