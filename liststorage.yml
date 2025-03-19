@@ -87,17 +87,9 @@
         return_content: yes
       register: storage_response
 
-    - name: Parse XML response
-      xml:
-        xmlstring: "{{ item.content }}"
-        content: text
-        xpath: /bucket_billing_info/total_objects | /bucket_billing_info/total_size
-      loop: "{{ storage_response.results }}"
-      register: parsed_results
-
-    - name: Show parsed results
+    - name: Debug storage response content using json_query
       debug:
-        var: parsed_results
+        msg: "{{ storage_response.results | json_query('[].content') }}"
 
 
 
