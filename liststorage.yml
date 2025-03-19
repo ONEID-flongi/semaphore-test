@@ -62,16 +62,15 @@
       debug:
         var: buckets_response   
 
-    - name: Parse buckets response as XML
-      xml:
-        xmlstring: "{{ buckets_response.content }}"
-      register: parsed_buckets_response
+    - name: Parse buckets response using xmltodict
+      set_fact:
+        parsed_buckets_response: "{{ buckets_response.content | community.general.from_xml }}"
 
     - name: Extract bucket names
       set_fact:
         buckets: >-
           {{
-            parsed_buckets_response.dict.object_buckets.object_bucket | 
+            parsed_buckets_response.object_buckets.object_bucket | 
             map(attribute='name') | 
             list
           }}
