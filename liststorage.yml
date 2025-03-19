@@ -89,8 +89,9 @@
 
     - name: Debug storage response content
       debug:
-        msg: "{{ item.content }}"
-      loop: "{{ storage_response }}"
+       msg: "{{ item.content }}"
+      loop: "{{ storage_response.results }}"
+
 
 
     - name: Logout ECS API token
