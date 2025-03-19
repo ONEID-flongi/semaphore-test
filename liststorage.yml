@@ -48,89 +48,68 @@
         msg: "Target auth token not found in response."
       when: target_token == ''
 
-    - name: Get namespaces
+    - name: Get buckets for namespace
       uri:
-        url: "{{ target_url }}/object/namespaces"
+        url: "{{ target_url }}/object/bucket?namespace={{ target_namespace }}"
         method: GET
         headers:
           X-SDS-AUTH-TOKEN: "{{ target_token }}"
         validate_certs: no
         return_content: yes
-      register: namespaces_response
+      register: buckets_response
 
-    - name: Parse namespaces
+    - name: Parse buckets
       set_fact:
-        namespaces: "{{ namespaces_response.content | from_yaml | json_query('namespaces[*].namespace') }}"
+        buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
 
-    - name: Process each namespace
+    - name: Get quota for namespace
+      uri:
+        url: "{{ target_url }}/object/namespaces/namespace/{{ target_namespace }}"
+        method: GET
+        headers:
+          X-SDS-AUTH-TOKEN: "{{ target_token }}"
+        validate_certs: no
+        return_content: yes
+      register: quota_response
+
+    - name: Parse quota
       set_fact:
-        namespace_results: []
-      loop: "{{ namespaces }}"
+        quota: "{{ quota_response.content | from_yaml | json_query('namespace.blocksize') | int }}"
+
+    - name: Initialize total size
+      set_fact:
+        total_size: 0
+
+    - name: Process each bucket
+      loop: "{{ buckets }}"
       loop_control:
-        loop_var: namespace
+        loop_var: bucket
       tasks:
-        - name: Get buckets for namespace
+        - name: Get storage info for bucket
           uri:
-            url: "{{ target_url }}/object/bucket?namespace={{ namespace }}"
+            url: "{{ target_url }}/object/billing/buckets/{{ target_namespace }}/{{ bucket }}/info"
             method: GET
             headers:
               X-SDS-AUTH-TOKEN: "{{ target_token }}"
             validate_certs: no
             return_content: yes
-          register: buckets_response
+          register: storage_response
 
-        - name: Parse buckets
+        - name: Add bucket size to total
           set_fact:
-            buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
+            total_size: "{{ total_size + (storage_response.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
 
-        - name: Get quota for namespace
-          uri:
-            url: "{{ target_url }}/object/namespaces/namespace/{{ namespace }}"
-            method: GET
-            headers:
-              X-SDS-AUTH-TOKEN: "{{ target_token }}"
-            validate_certs: no
-            return_content: yes
-          register: quota_response
-
-        - name: Parse quota
-          set_fact:
-            quota: "{{ quota_response.content | from_yaml | json_query('namespace.blocksize') | int }}"
-
-        - name: Initialize total size
-          set_fact:
-            total_size: 0
-
-        - name: Process each bucket
-          loop: "{{ buckets }}"
-          loop_control:
-            loop_var: bucket
-          tasks:
-            - name: Get storage info for bucket
-              uri:
-                url: "{{ target_url }}/object/billing/buckets/{{ namespace }}/{{ bucket }}/info"
-                method: GET
-                headers:
-                  X-SDS-AUTH-TOKEN: "{{ target_token }}"
-                validate_certs: no
-                return_content: yes
-              register: storage_response
-
-            - name: Add bucket size to total
-              set_fact:
-                total_size: "{{ total_size + (storage_response.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
-
-        - name: Calculate usage percentage
-          set_fact:
-            usage_percentage: "{{ (total_size / quota * 100) | round(0) if quota > 0 else 0 }}"
-
-        - name: Append namespace results
-          set_fact:
-            namespace_results: "{{ namespace_results + [{'namespace': namespace, 'total_size': total_size, 'quota': quota, 'usage_percentage': usage_percentage}] }}"
+    - name: Calculate usage percentage
+      set_fact:
+        usage_percentage: "{{ (total_size / quota * 100) | round(0) if quota > 0 else 0 }}"
 
     - name: Output results
       debug:
-        var: namespace_results
+        msg: |
+          Namespace: {{ target_namespace }}
+          Total Size: {{ total_size }} GO
+          Quota: {{ quota }} GO
+          Usage Percentage: {{ usage_percentage }}%
 
     - name: Logout ECS API token
       uri:
