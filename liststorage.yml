@@ -62,13 +62,18 @@
       debug:
         var: buckets_response   
 
-    - name: Parse buckets
+    - name: Parse buckets response as XML
+      xml:
+        xmlstring: "{{ buckets_response.content }}"
+      register: parsed_buckets_response
+
+    - name: Extract bucket names
       set_fact:
         buckets: >-
           {{
-            buckets_response.content | 
-            xml | 
-            json_query("object_buckets.object_bucket[*].name")
+            parsed_buckets_response.dict.object_buckets.object_bucket | 
+            map(attribute='name') | 
+            list
           }}
 
     - name: Debug buckets
