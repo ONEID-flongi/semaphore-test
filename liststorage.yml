@@ -60,7 +60,7 @@
 
     - name: Debug buckets response
       debug:
-        var: buckets_response   
+        var: buckets_response.content
 
     - name: Extract bucket names using regex and exclude LastModified
       set_fact:
@@ -72,7 +72,7 @@
 
     - name: Debug buckets
       debug:
-        var: buckets
+        var: buckets.content
 
     - name: Get storage info for each bucket
       loop: "{{ buckets }}"
@@ -89,7 +89,7 @@
 
     - name: Debug storage response
       debug:
-        var: storage_response
+        var: storage_response.content
 
     - name: Logout ECS API token
       uri:
