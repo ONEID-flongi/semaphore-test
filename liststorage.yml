@@ -62,11 +62,12 @@
       debug:
         var: buckets_response   
 
-    - name: Extract bucket names using regex
+    - name: Extract bucket names using regex and exclude LastModified
       set_fact:
         buckets: >-
           {{
-            buckets_response.content | regex_findall("<name>(.*?)</name>")
+            (buckets_response.content | regex_findall("<name>(.*?)</name>"))
+            | difference(["LastModified"])
           }}
 
     - name: Debug buckets
