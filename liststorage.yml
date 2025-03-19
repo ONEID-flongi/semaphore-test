@@ -80,12 +80,10 @@
       set_fact:
         total_size: 0
 
-    - name: Process each bucket
+    - name: Get storage info for each bucket
       loop: "{{ buckets }}"
       loop_control:
         loop_var: bucket
-
-    - name: Get storage info for bucket
       uri:
         url: "{{ target_url }}/object/billing/buckets/{{ target_namespace }}/{{ bucket }}/info"
         method: GET
@@ -95,9 +93,12 @@
         return_content: yes
       register: storage_response
 
-    - name: Add bucket size to total
+    - name: Add bucket sizes to total
       set_fact:
-        total_size: "{{ total_size + (storage_response.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
+        total_size: "{{ total_size + (item.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
+      loop: "{{ storage_response.results }}"
+      loop_control:
+        loop_var: item
 
     - name: Calculate usage percentage
       set_fact:
