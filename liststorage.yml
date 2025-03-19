@@ -62,24 +62,6 @@
       set_fact:
         buckets: "{{ buckets_response.content | from_yaml | json_query('object_buckets[*].object_bucket.name') }}"
 
-    - name: Get quota for namespace
-      uri:
-        url: "{{ target_url }}/object/namespaces/namespace/{{ target_namespace }}"
-        method: GET
-        headers:
-          X-SDS-AUTH-TOKEN: "{{ target_token }}"
-        validate_certs: no
-        return_content: yes
-      register: quota_response
-
-    - name: Parse quota
-      set_fact:
-        quota: "{{ quota_response.content | from_yaml | json_query('namespace.blocksize') | int }}"
-
-    - name: Initialize total size
-      set_fact:
-        total_size: 0
-
     - name: Get storage info for each bucket
       loop: "{{ buckets }}"
       loop_control:
@@ -93,24 +75,7 @@
         return_content: yes
       register: storage_response
 
-    - name: Add bucket sizes to total
-      set_fact:
-        total_size: "{{ total_size + (item.content | from_yaml | json_query('bucket_billing_info.total_size') | int) }}"
-      loop: "{{ storage_response.results }}"
-      loop_control:
-        loop_var: item
 
-    - name: Calculate usage percentage
-      set_fact:
-        usage_percentage: "{{ (total_size / quota * 100) | round(0) if quota > 0 else 0 }}"
-
-    - name: Output results
-      debug:
-        msg: |
-          Namespace: {{ target_namespace }}
-          Total Size: {{ total_size }} GO
-          Quota: {{ quota }} GO
-          Usage Percentage: {{ usage_percentage }}%
 
     - name: Logout ECS API token
       uri:
