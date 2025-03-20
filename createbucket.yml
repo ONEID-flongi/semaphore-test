@@ -118,7 +118,7 @@
 
     - name: Debug list buckets response
       debug:
-        msg: "{{ list_buckets_response | json_query('[].content') }}"
+        var: list_buckets_response
       when: action == "list"
 
     - name: Set bucket names fact
