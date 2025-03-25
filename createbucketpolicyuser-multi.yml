@@ -156,7 +156,7 @@
             <namespace>{{ target_namespace }}</namespace>
             <is_stale_allowed>true</is_stale_allowed>
             <is_tso_read_only>true</is_tso_read_only>
-            <retention>30</retention>
+            <retention>0</retention>
             <compliance_enabled>false</compliance_enabled>
             <search_metadata>
               <isEnabled>true</isEnabled>
