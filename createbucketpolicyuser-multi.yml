@@ -157,7 +157,6 @@
             <is_stale_allowed>true</is_stale_allowed>
             <is_tso_read_only>true</is_tso_read_only>
             <compliance_enabled>false</compliance_enabled>
-            <is_object_lock_enabled>true</is_object_lock_enabled>
             <search_metadata>
               <isEnabled>true</isEnabled>
               <maxKeys>0</maxKeys>
